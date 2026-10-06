@@ -22,6 +22,12 @@
     .auth-box button:disabled { opacity: .6; cursor: wait; }
     .auth-status { margin: 10px 0 0; font-size: 14px; color: #bfd0e5; }
     .auth-error { margin: 10px 0 0; font-size: 14px; color: #ffadb9; min-height: 1.5em; }
+    .memo-editor { margin: 22px 0; padding: 20px; border-radius: 14px; background: #1a2a3d; border: 1px solid #51667c; }
+    .memo-editor input, .memo-editor textarea { display: block; width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #51667c; border-radius: 8px; background: #101a28; color: #ecf4ff; font: inherit; }
+    .memo-editor textarea { min-height: 96px; resize: vertical; }
+    .memo-editor button, .memo-actions button { padding: 9px 14px; margin: 8px 8px 0 0; border: 0; border-radius: 8px; background: #8ad8df; color: #101a28; cursor: pointer; }
+    .memo-actions button:last-child { background: #51667c; color: white; }
+    #memo-feedback { color: #ffbec6; min-height: 1.5em; }
     [hidden] { display: none !important; }
     ul { list-style: none; display: grid; gap: 12px; padding: 0; }
     li { border: 1px solid #51667c; border-radius: 14px; padding: 17px 19px; background: #1a2a3d; }
@@ -32,7 +38,7 @@
 </head>
 <body>
   <main>
-    <div class="eyebrow">BYTE BACK · 3단계 제작 2 — 서버 토큰 검증</div>
+    <div class="eyebrow">BYTE BACK · 3단계 제작 3 — 메모 관리</div>
     <h1>보호된 자료실</h1>
     <p>Supabase Auth의 이메일·비밀번호로 로그인할 수 있습니다.</p>
 
@@ -55,7 +61,14 @@
       <p id="auth-error" class="auth-error" role="alert"></p>
     </section>
 
-    <div class="notice">메모는 서버에서 토큰 검증에 성공했을 때만 제공합니다. 가상 메모의 추가·수정·삭제 기능은 제작 3에서 구현합니다.</div>
+    <div class="notice">로그인한 사용자는 가상 메모를 추가·수정·삭제할 수 있습니다.</div>
+    <form id="memo-editor" class="memo-editor" hidden>
+      <h2>가상 메모 추가</h2>
+      <label>제목<input id="memo-title" maxlength="120" required></label>
+      <label>내용<textarea id="memo-body" maxlength="4000"></textarea></label>
+      <button id="memo-add" type="submit">메모 추가</button>
+      <p id="memo-feedback" aria-live="polite"></p>
+    </form>
     <ul id="notes" aria-live="polite"><li>메모를 보려면 로그인하세요.</li></ul>
   </main>
 
