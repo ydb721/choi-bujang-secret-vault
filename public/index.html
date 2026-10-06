@@ -86,6 +86,26 @@
     const errorText = document.querySelector('#auth-error');
 
     const notesList = document.querySelector('#notes');
+    const editor = document.querySelector('#memo-editor');
+    const memoTitle = document.querySelector('#memo-title');
+    const memoBody = document.querySelector('#memo-body');
+    const memoFeedback = document.querySelector('#memo-feedback');
+    let currentSession = null;
+    const memoRequest = async (method, path, input) => {
+      if (!currentSession?.access_token) throw new Error('로그인이 필요합니다.');
+      const response = await fetch(path, {
+        method,
+        cache: 'no-store',
+        headers: {
+          Authorization: 'Bearer ' + currentSession.access_token,
+          ...(input === undefined ? {} : { 'Content-Type': 'application/json' }),
+        },
+        ...(input === undefined ? {} : { body: JSON.stringify(input) }),
+      });
+      const data = response.status === 204 ? null : await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error || '요청 실패 (' + response.status + ')');
+      return data;
+    };
     let notesGeneration = 0;
 
     const showNotesMessage = (message) => {
@@ -120,8 +140,39 @@
           const title = document.createElement('strong');
           const body = document.createElement('span');
           title.textContent = note.title;
-          body.textContent = note.content ?? '';
+          body.textContent = note.body ?? '';
           item.append(title, body);
+          const actions = document.createElement('div');
+          actions.className = 'memo-actions';
+          const edit = document.createElement('button');
+          edit.type = 'button';
+          edit.textContent = '수정';
+          edit.addEventListener('click', async () => {
+            const newTitle = window.prompt('수정할 제목', note.title);
+            if (newTitle === null) return;
+            const newBody = window.prompt('수정할 내용', note.body ?? '');
+            if (newBody === null) return;
+            try {
+              await memoRequest('PUT', '/api/memos/' + encodeURIComponent(note.id), {
+                title: newTitle, body: newBody,
+              });
+              memoFeedback.textContent = '수정 완료';
+              if (currentSession) void loadMemos(currentSession, ++notesGeneration);
+            } catch (error) { memoFeedback.textContent = error.message; }
+          });
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.textContent = '삭제';
+          remove.addEventListener('click', async () => {
+            if (!window.confirm('이 가상 메모를 삭제할까요?')) return;
+            try {
+              await memoRequest('DELETE', '/api/memos/' + encodeURIComponent(note.id));
+              memoFeedback.textContent = '삭제 완료';
+              if (currentSession) void loadMemos(currentSession, ++notesGeneration);
+            } catch (error) { memoFeedback.textContent = error.message; }
+          });
+          actions.append(edit, remove);
+          item.append(actions);
           return item;
         }));
       } catch (error) {
@@ -131,10 +182,32 @@
       }
     };
 
+    editor.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const add = document.querySelector('#memo-add');
+      add.disabled = true;
+      memoFeedback.textContent = '';
+      try {
+        await memoRequest('POST', '/api/memos', {
+          title: memoTitle.value, body: memoBody.value,
+        });
+        editor.reset();
+        memoFeedback.textContent = '추가 완료';
+        if (currentSession) void loadMemos(currentSession, ++notesGeneration);
+      } catch (error) { memoFeedback.textContent = error.message; }
+      finally { add.disabled = false; }
+    });
+
     const showError = (message) => { errorText.textContent = message; };
     const renderSession = (session) => {
       const signedIn = Boolean(session?.user && session?.access_token);
       const generation = ++notesGeneration;
+      currentSession = signedIn ? session : null;
+      editor.hidden = !signedIn;
+      if (!signedIn) {
+        editor.reset();
+        memoFeedback.textContent = '';
+      }
       form.hidden = signedIn;
       loggedInView.hidden = !signedIn;
       userEmail.textContent = signedIn ? (session.user.email ?? '이메일 없음') : '';
