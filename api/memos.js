@@ -80,8 +80,7 @@ export async function handleMemos(req, res, noteId = null) {
     return res.status(500).json({ error: 'SERVER_CONFIGURATION_ERROR' });
   }
 
-  // Only this verified identity determines ownership on CREATE and LIST.
-  // Per the stage 3 exercise, per-ID ownership checks are added in stage 4.
+  // Only the token-verified identity determines ownership on every operation.
   const identity = await verifyLogin(req.headers.authorization);
   if (!identity) {
     return res.status(401).json({ error: 'AUTH_REQUIRED' });
@@ -128,8 +127,8 @@ export async function handleMemos(req, res, noteId = null) {
       return res.status(201).json({ id: result.data[0].public_id });
     }
 
-    const byId = { public_id: 'eq.' + noteId };
-    // Intentionally no owner_id constraint for ID routes until stage 4.
+    const byId = { public_id: 'eq.' + noteId, owner_id: 'eq.' + identity.userId };
+    // Every per-ID operation is atomically restricted to the token-verified owner.
     if (req.method === 'GET') {
       const result = await dbRequest('GET', {
         ...byId,
@@ -142,14 +141,23 @@ export async function handleMemos(req, res, noteId = null) {
     }
 
     if (req.method === 'PUT') {
-      const fields = memoFields(readBody(req));
+      const incoming = readBody(req);
+      // Never accept an owner change or an identity supplied in the request body.
+      if (incoming && typeof incoming === 'object'
+          && (Object.hasOwn(incoming, 'owner_id') || Object.hasOwn(incoming, 'ownerId'))) {
+        return res.status(403).json({ error: 'OWNER_CHANGE_FORBIDDEN' });
+      }
+      const fields = memoFields(incoming);
       if (!fields) return res.status(400).json({ error: 'INVALID_MEMO' });
       const result = await dbRequest('PATCH', {
         ...byId,
-        select: 'public_id,title,content',
+        select: 'public_id,title,content,owner_id',
       }, fields);
       if (result.error) return res.status(result.status).json({ error: result.error });
       if (!result.data.length) return res.status(404).json({ error: 'MEMO_NOT_FOUND' });
+      if (result.data[0].owner_id !== identity.userId) {
+        return res.status(403).json({ error: 'OWNER_MISMATCH' });
+      }
       return res.status(200).json(resultMemo(result.data[0]));
     }
 
