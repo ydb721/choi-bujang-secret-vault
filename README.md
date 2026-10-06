@@ -9,7 +9,7 @@
 2. 브라우저는 `/api/memos` 서버 함수로만 메모 조회·추가·수정·삭제
 3. JWT는 HttpOnly Secure SameSite=Strict 쿠키, 서버는 원본 `src/verify-login.mjs`로 검증
 4. 모든 메모 요청은 서버에서 검증한 사용자 ID와 소유자를 비교
-5. 비로그인 시 JSON 401, `/data.json` 메모 0건, `/aleph.json` 및 nosniff 유지
+5. 비로그인 시 JSON 401, `/data.json` 메모 0건, `/aleph.json` (allowedRoutes 포함) 및 nosniff 유지
 
 ### 5단계 제작 1 결과
 
@@ -33,6 +33,10 @@
 4. 로그아웃 후 /api/memos 직접 요청 → 401 JSON 오류
 5. 원본 Data API `https://pizhdpzwtognhuklasrt.supabase.co/rest/v1/memos`에 anon 키만 담아 GET/POST → 자료 접근 거부 (심판이 검사)
 6. `/aleph.json`의 step=5, allowedRoutes 확인; 첫 화면 nosniff 헤더 및 공개 HTML에 `sb_publishable_` 없는지 확인
+
+### 배포 확인
+
+5단계 빌드에서 `scripts/deployment-identity.mjs`가 `/aleph.json`에 `allowedRoutes`, `originalApiUrl`을 포함함. 브라우저에는 Supabase 공개 키가 없고 `api/auth.js`의 Supabase SDK에만 키가 있음. Vercel 서버 인증은 쿠키로 유지하되 기존 심판 Bearer 인증 요청도 지원함.
 
 ### 5단계 저장점 및 제출 묶음
 
