@@ -1,23 +1,40 @@
-import { verifyLogin } from '../src/verify-login.mjs';
-
 export default async function handler(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
+
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'METHOD_NOT_ALLOWED' });
+  }
+
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SECRET_KEY;
+
+  if (!url || !key) {
+    return res.status(500).json({ error: 'SERVER_CONFIGURATION_ERROR' });
+  }
+
   try {
-    const authHeader = req.headers.authorization;
-    const user = await verifyLogin(authHeader);
+    const response = await fetch(
+      `${url}/rest/v1/memos?select=id,title,content&order=title.asc`,
+      {
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+        },
+      },
+    );
 
-    if (!user) {
-      return res.status(401).json({ error: '인증에 실패했습니다.' });
+    const data = await response.json();
+
+    if (!response.ok) {
+      return res.status(502).json({ error: 'UPSTREAM_DATA_ERROR' });
+    }
+    if (!Array.isArray(data)) {
+      return res.status(502).json({ error: 'INVALID_DATA_FORMAT' });
     }
 
-    if (req.method === 'GET') {
-      // 정상 인증된 경우 메모 데이터 반환
-      return res.status(200).json([
-        { id: '1', title: '가상 메모 1', content: '보호된 자료 내용입니다.' }
-      ]);
-    }
-
-    return res.status(405).json({ error: '허용되지 않는 메서드입니다.' });
-  } catch (error) {
-    return res.status(401).json({ error: '유효하지 않은 토큰입니다.' });
+    return res.status(200).json(data);
+  } catch {
+    return res.status(502).json({ error: 'UPSTREAM_REQUEST_FAILED' });
   }
 }

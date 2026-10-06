@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BYTE BACK | 점령된 자료실</title>
+  <title>BYTE BACK | 보호된 자료실</title>
   <style>
     :root { color-scheme: dark; font-family: system-ui, sans-serif; }
     body { margin: 0; min-height: 100vh; background: #101a28; color: #ecf4ff; }
@@ -11,124 +11,51 @@
     .eyebrow { color: #8ad8df; font-size: 14px; font-weight: 700; letter-spacing: .08em; }
     h1 { margin: 16px 0; font-size: clamp(30px, 7vw, 48px); line-height: 1.2; }
     p { font-size: 17px; line-height: 1.7; color: #bfd0e5; }
-    .notice { margin: 26px 0; padding: 18px; border: 1px solid #d07384; border-radius: 14px; color: #ffe3e8; background: #612a3544; }
-    .auth-box { margin: 20px 0; padding: 20px; border: 1px solid #51667c; border-radius: 14px; background: #1a2a3d; }
-    .auth-box input { padding: 10px; margin-right: 8px; border-radius: 6px; border: 1px solid #51667c; background: #101a28; color: #ecf4ff; }
-    .auth-box button { padding: 10px 16px; border-radius: 6px; border: none; background: #8ad8df; color: #101a28; font-weight: bold; cursor: pointer; }
+    .notice { margin: 26px 0; padding: 18px; border: 1px solid #d0a073; border-radius: 14px; color: #ffe9d4; background: #61472a44; }
     ul { list-style: none; display: grid; gap: 12px; padding: 0; }
     li { border: 1px solid #51667c; border-radius: 14px; padding: 17px 19px; background: #1a2a3d; }
     strong { display: block; font-size: 18px; margin-bottom: 5px; }
     li span { color: #bfd0e5; }
-    #login-error { color: #d07384; margin-top: 10px; font-size: 14px; }
   </style>
-  <!-- Supabase JS SDK 로드 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <main>
-    <div class="eyebrow">BYTE BACK · 3단계 로그인 인증</div>
-    <h1>점령된 자료실</h1>
-    <p>Supabase Auth를 통해 실제 로그인을 진행하고 자료를 조회합니다.</p>
-
-    <!-- 로그인 / 계정 상태 영역 -->
-    <div class="auth-box">
-      <div id="logged-out-view">
-        <h3>로그인</h3>
-        <div style="margin-bottom: 10px;">
-          <input type="email" id="email-input" placeholder="이메일" />
-          <input type="password" id="password-input" placeholder="비밀번호" />
-          <button id="login-btn">로그인</button>
-        </div>
-        <div id="login-error"></div>
-      </div>
-      
-      <div id="logged-in-view" style="display: none;">
-        <h3>계정 상태</h3>
-        <p>접속 계정: <span id="user-email-display" style="color: #8ad8df; font-weight: bold;"></span></p>
-        <button id="logout-btn">로그아웃</button>
-      </div>
-    </div>
-
-    <div class="notice">로그인 상태를 확인한 뒤 메모 목록을 불러옵니다.</div>
-    <ul id="notes" aria-live="polite"><li>로그인이 필요합니다.</li></ul>
+    <div class="eyebrow">BYTE BACK · 2단계 저장 위치 분리</div>
+    <h1>보호된 자료실</h1>
+    <p>정적 파일에는 메모를 두지 않고 서버 함수를 통해 학습용 Supabase의 가상 메모를 읽습니다.</p>
+    <div class="notice">현재 단계에서는 서버 API 주소 자체는 아직 공개되어 있습니다. 인증은 3단계에서 추가합니다.</div>
+    <ul id="notes" aria-live="polite"><li>가상 자료를 불러오는 중입니다.</li></ul>
   </main>
 
   <script type="module">
-    const SUPABASE_URL = 'https://pizhdpzwtognhuklasrt.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_E4o3qIRW_1RucMUHkOur2Q_gBN5SRqB'; // 본인의 Anon Key로 교체 필요
-
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const loggedOutView = document.getElementById('logged-out-view');
-    const loggedInView = document.getElementById('logged-in-view');
-    const emailInput = document.getElementById('email-input');
-    const passwordInput = document.getElementById('password-input');
-    const loginBtn = document.getElementById('login-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-    const loginError = document.getElementById('login-error');
-    const userEmailDisplay = document.getElementById('user-email-display');
     const list = document.querySelector('#notes');
 
-    async function fetchMemos(session) {
-      if (!session) {
-        list.innerHTML = '<li>로그인이 필요합니다.</li>';
-        return;
+    try {
+      const response = await fetch('/api/memos', { cache: 'no-store' });
+      const data = await response.json();
+
+      if (!response.ok || !Array.isArray(data)) {
+        throw new Error(data?.error || '자료를 읽을 수 없습니다.');
       }
 
-      try {
-        const response = await fetch('/api/memos', { 
-          cache: 'no-store',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`
-          }
-        });
-        const data = await response.json();
-
-        if (!response.ok || !Array.isArray(data)) {
-          throw new Error(data.error || '공개 자료를 읽을 수 없습니다.');
-        }
-
-        if (data.length === 0) {
-          list.innerHTML = '<li>등록된 메모가 없습니다.</li>';
-          return;
-        }
-
+      if (data.length === 0) {
+        list.innerHTML = '<li>등록된 가상 메모가 없습니다.</li>';
+      } else {
         list.replaceChildren(...data.map(note => {
           const item = document.createElement('li');
           const title = document.createElement('strong');
           const content = document.createElement('span');
           title.textContent = note.title;
-          content.textContent = note.content || note.body;
+          content.textContent = note.content ?? '';
           item.append(title, content);
           return item;
         }));
-      } catch (error) {
-        const item = document.createElement('li');
-        item.textContent = error.message;
-        list.replaceChildren(item);
       }
+    } catch (error) {
+      const item = document.createElement('li');
+      item.textContent = error.message;
+      list.replaceChildren(item);
     }
-
-    async function checkUserSession() {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      updateUI(session);
-    }
-
-    function updateUI(session) {
-      if (session) {
-        loggedOutView.style.display = 'none';
-        loggedInView.style.display = 'block';
-        userEmailDisplay.textContent = session.user.email;
-        fetchMemos(session);
-      } else {
-        loggedOutView.style.display = 'block';
-        loggedInView.style.display = 'none';
-        loginError.textContent = '';
-        list.innerHTML = '<li>로그인이 필요합니다.</li>';
-      }
-    }
-
-    loginBtn.addEventListener('click', async () => {
-      loginError.textContent = '';
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
+  </script>
+</body>
+</html>
