@@ -2,7 +2,47 @@
 
 이 저장소는 BYTE BACK 방어전 시작 틀을 기반으로 한 학습용 자료실입니다. 실제 학생 자료, 비밀번호, 토큰, 서버 전용 키는 Git에 넣지 않습니다.
 
-## 현재 단계: 3단계 — 로그인 및 가상 메모 CRUD
+## 현재 단계: 4단계 — 로그인해도 내 자료만
+
+현재 기능 (5줄):
+1. Supabase Auth 로그인·로그아웃 및 유효한 토큰 검증
+2. 로그인한 사용자의 메모 목록 조회
+3. 가상 메모 추가·조회·수정·삭제 (UUID)
+4. 서버에서 모든 단건 CRUD를 `owner_id = 검증된 userId`로 제한
+5. 비로그인 요청은 JSON 401로 거부하며 정적 `/data.json`은 비어 있음
+
+### 4단계 작업 순서
+
+- [supabase/step4-owner-fixtures.sql](supabase/step4-owner-fixtures.sql): 먼저 Supabase Auth에 B 계정 `test-b@example.com`을 만들고 실행. 기존 4건 중 세 건은 A, '훈련 행정 자료' 한 건은 B로 배정. 입력한 이메일과 테스트 계정을 실행 전 점검
+- [supabase/step4-rls.sql](supabase/step4-rls.sql): **학생 검토 후 직접 실행할 SQL**. `public.memos`만 권한 재정의 및 SELECT/INSERT/UPDATE/DELETE 정책 적용
+- 서버 API: `GET /api/memos`, `POST /api/memos`, `GET /api/memos/:id`, `PUT /api/memos/:id`, `DELETE /api/memos/:id`는 인증 필수
+- 단건 조회·수정·삭제는 `public_id`와 `owner_id`를 함께 필터. 수정 요청의 `owner_id` 변경은 403. 추가 시 owner_id는 서버가 검증한 사용자 ID로만 설정
+- RLS 실행 후 `role_table_grants`, `has_table_privilege`으로 anon 및 authenticated 테이블 권한을 재확인해야 함
+- Supabase 서버 전용 키를 사용하는 서버 호출은 RLS를 우회할 수 있으므로 API에서의 소유자 검사를 별도로 유지
+- 3단계 기존 메모 본문·로그인 SDK·화면 구성은 보존
+
+### 4단계 직접 검증
+
+1. A 로그인 → 세 건 목록. 자신이 만든 임시 메모는 추가·수정·삭제 가능
+2. B 로그인 → '훈련 행정 자료' 한 건 목록. 자신의 임시 메모도 CRUD 가능
+3. B가 A의 메모 UUID로 GET·PUT·DELETE 요청 → 404 또는 403, A의 메모 그대로 유지
+4. A가 B 메모 UUID로 요청 → 404 또는 403. 요청에 owner_id를 넣어도 소유권 변경 불가
+5. 비로그인 API 목록 → 401과 JSON 오류, `/aleph.json` 열림, nosniff 보안 헤더 확인
+6. 5단계 완료 후에도 A/B 각각 로그인하여 화면 검증 반복
+
+### 재실행과 제출 묶음
+
+Vercel 자동 배포 후 로컬 VSCode의 저장소 폴더에서:
+
+```powershell
+git pull
+npm.cmd run bundle
+```
+
+`bundle-notes.json`의 explanation은 4단계 변경 내용으로 수정해 두되 Git에 올리지 않음. 출력 `artifacts/submission.json`도 Git 커밋 대상이 아님.
+SQL 두 파일은 실행용 계획이며 DB에 직접 적용하지 않은 상태에서는 RLS 및 B 계정 검증이 완료되었다고 기록하지 않음.
+
+## 3단계 저장점 — 로그인 및 가상 메모 CRUD
 
 - Supabase Auth 로그인/로그아웃과 서버 토큰 검증 적용
 - GET /api/memos: 서버가 확인한 사용자 ID(owner_id)의 메모 목록
@@ -56,9 +96,9 @@ Vercel 프로젝트 설정의 비밀 입력란에 아래 이름을 사용합니�
 - `SUPABASE_URL`
 - `SUPABASE_SECRET_KEY`
 
-## 현재 남은 약점
+## 앞 단계 약점의 보완
 
-2단계 당시 `/api/memos`는 공개 주소였으나, 3단계에서 토큰 검사를 적용함. 아직 **단건 조회·수정·삭제에 소유자 확인이 빠져 있는 상태**이며 4단계에서 막을 예정임.
+2단계 공개 API는 3단계에 인증을 적용했고, 3단계 단건 IDOR는 4단계에 서버 측 owner_id 필터를 추가함. 데이터베이스 최소 권한/RLS 적용 여부는 SQL을 실행한 뒤 별도로 확인해야 함.
 
 ## 최신 파일 확인 결과
 
