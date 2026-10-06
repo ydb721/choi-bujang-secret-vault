@@ -19,10 +19,10 @@ if (config.step === 1) {
 } else {
   await writeFile(
     output,
-    `${JSON.stringify({ sampleMarker: config.sampleMarker, notes: [] }, null, 2)}\n`,
+    `${JSON.stringify({ notes: [] }, null, 2)}\n`,
     'utf8',
   );
-  console.log('2단계 이후 정적 data.json에는 메모를 포함하지 않습니다.');
+  console.log('2단계 이후 정적 data.json에는 메모와 1단계 확인 표시를 포함하지 않습니다.');
 }
 
 if (!process.argv.includes('--local')) {

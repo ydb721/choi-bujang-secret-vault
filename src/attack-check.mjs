@@ -24,8 +24,9 @@ export async function runAttackChecks(config) {
   if (staticResponse.ok) {
     try {
       const data = await staticResponse.json();
-      staticEmpty = (Array.isArray(data) && data.length === 0)
-        || (Array.isArray(data?.notes) && data.notes.length === 0);
+      staticEmpty = !Object.prototype.hasOwnProperty.call(data ?? {}, 'sampleMarker')
+        && ((Array.isArray(data) && data.length === 0)
+          || (Array.isArray(data?.notes) && data.notes.length === 0));
     } catch {
       staticEmpty = false;
     }
@@ -48,10 +49,10 @@ export async function runAttackChecks(config) {
   return [
     {
       attackId: 'anonymous_static_note_read',
-      expected: '정적 data.json에서 가상 메모 0건',
+      expected: '정적 data.json에서 가상 메모 0건이며 1단계 확인 표시가 없음',
       observed: staticEmpty
-        ? '비로그인 정적 요청에서 메모 0건 확인'
-        : `정적 자료가 남아 있거나 읽을 수 없음 (HTTP ${staticResponse.status})`,
+        ? '비로그인 정적 요청에서 메모 0건 및 1단계 확인 표시 제거 확인'
+        : `정적 자료 또는 1단계 확인 표시가 남아 있거나 읽을 수 없음 (HTTP ${staticResponse.status})`,
     },
     {
       attackId: 'anonymous_api_read',
