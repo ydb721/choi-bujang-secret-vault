@@ -21,7 +21,7 @@ export function deploymentIdentity(env, config) {
     throw new Error('배포 식별 정보를 확인할 수 없습니다. Vercel 시스템 환경변수와 단계 설정을 확인하세요.');
   }
 
-  return {
+  const result = {
     schema: 'aleph.defense.deployment.v1',
     step,
     repoUrl: `https://github.com/${owner.toLowerCase()}/${repo.toLowerCase()}`,
@@ -30,4 +30,15 @@ export function deploymentIdentity(env, config) {
     judgeIssuer: config.judgeIssuer,
     sampleMarker: config.sampleMarker,
   };
+  if (step >= 5) {
+    if (!Array.isArray(config.allowedRoutes) || !config.allowedRoutes.length
+        || config.allowedRoutes.some(route => typeof route !== 'string'
+          || !/^(GET|POST|PUT|DELETE) \\/api\\/[a-z0-9/:_-]+$/u.test(route))
+        || typeof config.originalApiUrl !== 'string') {
+      throw new Error('5단계부터 허용 경로와 원본 Data API 주소가 필요합니다.');
+    }
+    result.allowedRoutes = config.allowedRoutes;
+    result.originalApiUrl = config.originalApiUrl;
+  }
+  return result;
 }
