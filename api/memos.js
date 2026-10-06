@@ -1,21 +1,23 @@
+import { verifyLogin } from '../src/verify-login.mjs';
+
 export default async function handler(req, res) {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SECRET_KEY;
-
-  if (!url || !key) {
-    return res.status(500).json({ error: '환경변수 미설정' });
-  }
-
   try {
-    const response = await fetch(`${url}/rest/v1/memos?select=*`, {
-      headers: {
-        'apikey': key,
-        'Authorization': `Bearer ${key}`
-      }
-    });
-    const data = await response.json();
-    return res.status(200).json(data);
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
+    const authHeader = req.headers.authorization;
+    const user = await verifyLogin(authHeader);
+
+    if (!user) {
+      return res.status(401).json({ error: '인증에 실패했습니다.' });
+    }
+
+    if (req.method === 'GET') {
+      // 정상 인증된 경우 메모 데이터 반환
+      return res.status(200).json([
+        { id: '1', title: '가상 메모 1', content: '보호된 자료 내용입니다.' }
+      ]);
+    }
+
+    return res.status(405).json({ error: '허용되지 않는 메서드입니다.' });
+  } catch (error) {
+    return res.status(401).json({ error: '유효하지 않은 토큰입니다.' });
   }
 }
