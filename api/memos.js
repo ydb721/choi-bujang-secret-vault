@@ -80,8 +80,24 @@ export async function handleMemos(req, res, noteId = null) {
     return res.status(500).json({ error: 'SERVER_CONFIGURATION_ERROR' });
   }
 
+  // Judge/client Bearer tokens remain supported; browsers use an HttpOnly same-site cookie.
+  const bearer = req.headers.authorization;
+  const cookie = String(req.headers.cookie || '').split(';').map(part => part.trim())
+    .find(part => part.startsWith('__Host-byteback-access='));
+  let authHeader = bearer;
+  if (!authHeader && cookie) {
+    try { authHeader = 'Bearer ' + decodeURIComponent(cookie.slice(cookie.indexOf('=') + 1)); }
+    catch { authHeader = undefined; }
+  }
+
+  // Same-site cookie requests cannot be used for cross-origin writes.
+  if (!bearer && ['POST', 'PUT', 'DELETE'].includes(req.method)
+      && req.headers.origin && req.headers.origin !== 'https://' + req.headers.host) {
+    return res.status(403).json({ error: 'ORIGIN_REJECTED' });
+  }
+
   // Only the token-verified identity determines ownership on every operation.
-  const identity = await verifyLogin(req.headers.authorization);
+  const identity = await verifyLogin(authHeader);
   if (!identity) {
     return res.status(401).json({ error: 'AUTH_REQUIRED' });
   }

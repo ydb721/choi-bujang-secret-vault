@@ -34,13 +34,12 @@
     strong { display: block; font-size: 18px; margin-bottom: 5px; }
     li span { color: #bfd0e5; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <main>
-    <div class="eyebrow">BYTE BACK · 3단계 제작 3 — 메모 관리</div>
+    <div class="eyebrow">BYTE BACK · 5단계 — 서버 전용 자료 요청</div>
     <h1>보호된 자료실</h1>
-    <p>Supabase Auth의 이메일·비밀번호로 로그인할 수 있습니다.</p>
+    <p>서버 인증 경유로 이메일·비밀번호 로그인을 할 수 있습니다.</p>
 
     <section class="auth-box" aria-labelledby="auth-heading">
       <h2 id="auth-heading">계정 인증</h2>
@@ -61,7 +60,7 @@
       <p id="auth-error" class="auth-error" role="alert"></p>
     </section>
 
-    <div class="notice">로그인한 사용자는 가상 메모를 추가·수정·삭제할 수 있습니다.</div>
+    <div class="notice">모든 메모 요청은 Vercel 서버 함수를 통하며, 로그인 및 소유자 검사를 거쳐 처리합니다.</div>
     <form id="memo-editor" class="memo-editor" hidden>
       <h2>가상 메모 추가</h2>
       <label>제목<input id="memo-title" maxlength="120" required></label>
@@ -73,8 +72,6 @@
   </main>
 
   <script type="module">
-    const supabaseUrl = 'https://pizhdpzwtognhuklasrt.supabase.co';
-    const publishableKey = 'sb_publishable_E4o3qIRW_1RucMUHkOur2Q_gBN5SRqB';
     const form = document.querySelector('#login-form');
     const loginBtn = document.querySelector('#login-btn');
     const logoutBtn = document.querySelector('#logout-btn');
@@ -92,12 +89,12 @@
     const memoFeedback = document.querySelector('#memo-feedback');
     let currentSession = null;
     const memoRequest = async (method, path, input) => {
-      if (!currentSession?.access_token) throw new Error('로그인이 필요합니다.');
+      if (!currentSession?.user) throw new Error('로그인이 필요합니다.');
       const response = await fetch(path, {
         method,
         cache: 'no-store',
         headers: {
-          Authorization: 'Bearer ' + currentSession.access_token,
+          // The browser sends only the Vercel session cookie, never a Supabase data key.
           ...(input === undefined ? {} : { 'Content-Type': 'application/json' }),
         },
         ...(input === undefined ? {} : { body: JSON.stringify(input) }),
@@ -119,7 +116,7 @@
       try {
         const response = await fetch('/api/memos', {
           cache: 'no-store',
-          headers: { Authorization: `Bearer ${session.access_token}` },
+          credentials: 'same-origin',
         });
         const data = await response.json();
         if (!response.ok) {
@@ -200,7 +197,7 @@
 
     const showError = (message) => { errorText.textContent = message; };
     const renderSession = (session) => {
-      const signedIn = Boolean(session?.user && session?.access_token);
+      const signedIn = Boolean(session?.user);
       const generation = ++notesGeneration;
       currentSession = signedIn ? session : null;
       editor.hidden = !signedIn;
@@ -221,58 +218,61 @@
       }
     };
 
-    if (!window.supabase?.createClient) {
-      form.hidden = true;
-      status.textContent = '인증 초기화 실패';
-      showError('Supabase 공식 SDK를 불러오지 못했습니다. 페이지를 새로고침해 주세요.');
-    } else {
-      const client = window.supabase.createClient(supabaseUrl, publishableKey);
 
-      client.auth.onAuthStateChange((_event, session) => {
-        renderSession(session);
+    const requestAuth = async (method, payload) => {
+      const response = await fetch('/api/auth', {
+        method, cache: 'no-store', credentials: 'same-origin',
+        ...(payload === undefined ? {} : {
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }),
       });
-
-      try {
-        const { data, error } = await client.auth.getSession();
-        if (error) throw error;
-        renderSession(data.session);
-      } catch (error) {
-        renderSession(null);
-        showError(error.message ?? '로그인 상태를 확인하지 못했습니다.');
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(result?.error || '인증 요청 실패 (' + response.status + ')');
       }
+      return result;
+    };
 
-      form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        loginBtn.disabled = true;
-        showError('');
-        try {
-          const { data, error } = await client.auth.signInWithPassword({
-            email: emailInput.value.trim(),
-            password: passwordInput.value,
-          });
-          if (error) throw error;
-          renderSession(data.session);
-        } catch (error) {
-          showError(error.message ?? '로그인에 실패했습니다.');
-        } finally {
-          loginBtn.disabled = false;
-        }
-      });
-
-      logoutBtn.addEventListener('click', async () => {
-        logoutBtn.disabled = true;
-        showError('');
-        try {
-          const { error } = await client.auth.signOut({ scope: 'local' });
-          if (error) throw error;
-          renderSession(null);
-        } catch (error) {
-          showError(error.message ?? '로그아웃에 실패했습니다.');
-        } finally {
-          logoutBtn.disabled = false;
-        }
-      });
+    try {
+      const result = await requestAuth('GET');
+      renderSession(result.authenticated ? { user: { email: result.email } } : null);
+    } catch (error) {
+      renderSession(null);
+      showError(error.message ?? '로그인 상태를 확인할 수 없습니다.');
     }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      loginBtn.disabled = true;
+      showError('');
+      try {
+        const result = await requestAuth('POST', {
+          action: 'login',
+          email: emailInput.value.trim(),
+          password: passwordInput.value,
+        });
+        renderSession({ user: { email: result.email } });
+      } catch (error) {
+        showError(error.message ?? '로그인에 실패했습니다.');
+      } finally {
+        loginBtn.disabled = false;
+      }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      logoutBtn.disabled = true;
+      showError('');
+      try {
+        await requestAuth('POST', { action: 'logout' });
+        renderSession(null);
+      } catch (error) {
+        showError(error.message ?? '로그아웃에 실패했습니다.');
+      } finally {
+        logoutBtn.disabled = false;
+      }
+    });
+
   </script>
 </body>
 </html>

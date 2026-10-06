@@ -2,7 +2,50 @@
 
 이 저장소는 BYTE BACK 방어전 시작 틀을 기반으로 한 학습용 자료실입니다. 실제 학생 자료, 비밀번호, 토큰, 서버 전용 키는 Git에 넣지 않습니다.
 
-## 현재 단계: 4단계 — 로그인해도 내 자료만
+## 현재 단계: 5단계 — 자료 요청을 서버 한곳으로 모읍니다
+
+현재 기능 (5줄):
+1. 로그인·로그아웃은 Vercel `/api/auth`에서 공식 Supabase Auth SDK 사용
+2. 브라우저는 `/api/memos` 서버 함수로만 메모 조회·추가·수정·삭제
+3. JWT는 HttpOnly Secure SameSite=Strict 쿠키, 서버는 원본 `src/verify-login.mjs`로 검증
+4. 모든 메모 요청은 서버에서 검증한 사용자 ID와 소유자를 비교
+5. 비로그인 시 JSON 401, `/data.json` 메모 0건, `/aleph.json` 및 nosniff 유지
+
+### 5단계 제작 1 결과
+
+`public/index.html`에 Supabase 메모 Data API 직접 호출은 **없음**. `/rest/v1/memos`는 기존부터 `api/memos.js` 서버 함수 내부에서만 사용했음.
+3단계까지 브라우저가 호출하던 Supabase Auth SDK는 5단계 공개 키 가점 조건을 위해 `api/auth.js`로 이동함. A/B 이메일·비밀번호 로그인·로그아웃 동작은 유지.
+
+### 5단계 제작 2: 직접 DB 권한 회수
+
+검토 후 [supabase/step5-revoke-direct.sql](supabase/step5-revoke-direct.sql)을 **Supabase SQL Editor에서 직접 실행**할 것.
+`public.memos`에서 `PUBLIC`, `anon`, `authenticated` 테이블 권한만 REVOKE ALL; `service_role` 역할은 변경하지 않음.
+원본 직접 자료 API (쿼리 없는 HTTPS 주소): `https://pizhdpzwtognhuklasrt.supabase.co/rest/v1/memos`.
+브라우저는 `api/auth.js` 서버를 통해 Supabase Auth SDK를 사용하고, Supabase 공개 키는 `public/index.html`에 포함하지 않음.
+인증 서버에서는 공개용 `SUPABASE_PUBLISHABLE_KEY` (선택 환경변수 또는 공개 학습용 서버 상수)를 사용.
+메모 서버 `api/memos.js`는 비공개 `SUPABASE_SECRET_KEY`를 환경변수에서만 읽으며 검증·소유자 검사 유지.
+
+### 5단계 재현 확인
+
+1. 배포에서 A 로그인 후 **A 메모 3건**과 자신의 추가·수정·삭제를 확인
+2. B 로그인 후 **B 메모 1건**과 자신의 추가·수정·삭제를 확인
+3. B가 A 메모 UUID를 사용한 GET·PUT·DELETE 요청 → 403 또는 404, A 메모 유지
+4. 로그아웃 후 /api/memos 직접 요청 → 401 JSON 오류
+5. 원본 Data API `https://pizhdpzwtognhuklasrt.supabase.co/rest/v1/memos`에 anon 키만 담아 GET/POST → 자료 접근 거부 (심판이 검사)
+6. `/aleph.json`의 step=5, allowedRoutes 확인; 첫 화면 nosniff 헤더 및 공개 HTML에 `sb_publishable_` 없는지 확인
+
+### 5단계 저장점 및 제출 묶음
+
+```powershell
+git status
+git pull
+npm.cmd run bundle
+```
+
+로컬 `bundle-notes.json`의 explanation을 5단계로 바꿔 저장. `artifacts/submission.json` 및 `bundle-notes.json`은 커밋하지 않음.
+SQL 권한 회수와 A/B 로그인·CRUD 검증은 실제 실행 전 통과했다고 기록하지 않음.
+
+## 4단계 저장점 — 로그인해도 내 자료만
 
 현재 기능 (5줄):
 1. Supabase Auth 로그인·로그아웃 및 유효한 토큰 검증

@@ -1,54 +1,39 @@
-// 4단계 자기 점검: 비밀값, 로그인 토큰, 가상 메모 본문은 수집하지 않음.
-// A/B 타인 메모 검사와 RLS 적용 확인은 사용자가 직접 진행하여야 함.
+// Stage 5 public self-checks; no private keys, credentials, or record bodies.
 export async function runAttackChecks(config) {
-  if (config.step !== 4) throw new Error('4단계 설정을 확인해 주세요.');
+  if (config.step !== 5) throw new Error('5단계 설정이 아닙니다.');
   const base = new URL(config.publicAppUrl);
+  const direct = new URL(config.originalApiUrl);
   if (base.protocol !== 'https:' || !base.hostname.endsWith('.vercel.app')
-      || base.pathname !== '/') {
-    throw new Error('실제 HTTPS Vercel 주소를 확인해 주세요.');
-  }
+      || direct.protocol !== 'https:') throw new Error('HTTPS 주소를 확인해 주세요.');
 
-  const request = (path, headers) => fetch(new URL(path, base), {
-    redirect: 'error',
-    headers,
-    signal: AbortSignal.timeout(10000),
-  });
-  const list = await request('/api/memos');
+  const options = () => ({redirect: 'error', signal: AbortSignal.timeout(10000)});
+  const list = await fetch(new URL('/api/memos',base),options());
   let jsonError = false;
-  try {
-    const body = await list.json();
-    jsonError = Boolean(body && typeof body.error === 'string');
-  } catch { jsonError = false; }
+  try { jsonError = typeof (await list.json())?.error === 'string'; } catch { /* non-json */ }
 
-  const fakeId = '11111111-1111-4111-8111-111111111111';
-  const single = await request('/api/memos/' + fakeId);
-  const staticFile = await request('/data.json');
-  const aleph = await request('/aleph.json');
-  let staticEmpty = staticFile.status === 404;
-  if (staticFile.ok) {
+  const single = await fetch(new URL('/api/memos/11111111-1111-4111-8111-111111111111',base),options());
+  const staticRes = await fetch(new URL('/data.json',base),options());
+  const deployed = await fetch(new URL('/aleph.json',base),options());
+  let noStatic = staticRes.status === 404;
+  if(staticRes.ok) {
     try {
-      const obj = await staticFile.json();
-      staticEmpty = Array.isArray(obj?.notes) && obj.notes.length === 0
-        && !Object.prototype.hasOwnProperty.call(obj, 'sampleMarker');
-    } catch { staticEmpty = false; }
+      const obj = await staticRes.json();
+      noStatic = Array.isArray(obj?.notes) && !obj.notes.length && !('sampleMarker' in obj);
+    } catch { noStatic = false; }
   }
 
+  // Direct access using an anon/publishable key is checked by the judge, not by this script.
+  const directRes = await fetch(direct,options());
   return [
-    { attackId: 'anonymous_list_block',
-      expected: '비로그인 목록 401/403 및 JSON 오류',
-      observed: [401,403].includes(list.status) && jsonError
-        ? '인증 없는 목록 요청 거부 및 JSON 오류 확인'
-        : '목록 요청 ' + list.status + ', JSON 오류 ' + jsonError },
-    { attackId: 'anonymous_item_block',
-      expected: '비로그인 단건 401/403',
-      observed: [401,403].includes(single.status)
-        ? '인증 없는 단건 요청 거부'
-        : '단건 요청 HTTP ' + single.status },
-    { attackId: 'static_file_check',
-      expected: '공개 정적 메모 0건',
-      observed: staticEmpty ? '정적 메모 0건' : '정적 확인 실패 (HTTP ' + staticFile.status + ')' },
-    { attackId: 'deployment_identity',
-      expected: '/aleph.json 정상 응답',
-      observed: aleph.ok ? '/aleph.json 열림' : '/aleph.json HTTP ' + aleph.status },
+    {attackId:'unauthenticated_memo_list',expected:'401/403 JSON 오류',
+      observed:[401,403].includes(list.status)&&jsonError?'비로그인 목록 거부, JSON 오류':'HTTP '+list.status+', JSON='+jsonError},
+    {attackId:'unauthenticated_memo_item',expected:'401/403',
+      observed:[401,403].includes(single.status)?'비로그인 단건 거부':'HTTP '+single.status},
+    {attackId:'static_memo_empty',expected:'정적 자료 0건',
+      observed:noStatic?'정적 자료 0건':'확인 필요 HTTP '+staticRes.status},
+    {attackId:'deployment_identity',expected:'/aleph.json 열림',
+      observed:deployed.ok?'/aleph.json 열림':'HTTP '+deployed.status},
+    {attackId:'direct_no_key_probe',expected:'키 없이 직접 자료 API 요청 거부',
+      observed:'키 없는 요청 HTTP '+directRes.status+'; anon 키 요청은 심판에서 확인'},
   ];
 }
