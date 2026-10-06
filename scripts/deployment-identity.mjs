@@ -32,9 +32,14 @@ export function deploymentIdentity(env, config) {
   };
   if (step >= 5) {
     if (!Array.isArray(config.allowedRoutes) || !config.allowedRoutes.length
-        || config.allowedRoutes.some(route => typeof route !== 'string'
-          || !/^(GET|POST|PUT|DELETE) \\/api\\/[a-z0-9/:_-]+$/u.test(route))
-        || typeof config.originalApiUrl !== 'string') {
+        || config.allowedRoutes.some(route => {
+          if (typeof route !== 'string') return true;
+          const parts = route.split(' ');
+          return parts.length !== 2 || !['GET', 'POST', 'PUT', 'DELETE'].includes(parts[0])
+            || !parts[1].startsWith('/api/') || parts[1].includes('?');
+        })
+        || typeof config.originalApiUrl !== 'string'
+        || !config.originalApiUrl.startsWith('https://')) {
       throw new Error('5단계부터 허용 경로와 원본 Data API 주소가 필요합니다.');
     }
     result.allowedRoutes = config.allowedRoutes;
