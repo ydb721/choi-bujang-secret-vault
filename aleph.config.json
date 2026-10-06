@@ -4,7 +4,7 @@
   "publicAppUrl": "https://replace-with-your-vercel-app.example",
   "sampleMarker": "SAMPLE_NOTE_1",
   "judgeIssuer": "https://aleph-judge-production.up.railway.app/defense/judge",
-  "identityProvider": null,
+  "identityProvider": "https://pizhdpzwtognhuklasrt.supabase.co/auth/v1"
   "allowedRoutes": [],
   "originalApiUrl": null,
   "restoreRoute": null
