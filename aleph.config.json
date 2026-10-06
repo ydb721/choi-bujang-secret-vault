@@ -4,7 +4,11 @@
   "publicAppUrl": "https://choi-bujang-secret-vault-pink.vercel.app",
   "sampleMarker": "SAMPLE_NOTE_1",
   "judgeIssuer": "https://aleph-judge-production.up.railway.app/defense/judge",
-  "identityProvider": null,
+  "identityProvider": {
+    "issuer": "https://pizhdpzwtognhuklasrt.supabase.co/auth/v1",
+    "audience": "authenticated",
+    "jwksUrl": "https://pizhdpzwtognhuklasrt.supabase.co/auth/v1/.well-known/jwks.json"
+  },
   "allowedRoutes": [],
   "originalApiUrl": null,
   "restoreRoute": null
