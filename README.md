@@ -6,11 +6,13 @@
 
 정적 파일에 있던 가상 메모를 학습용 Supabase로 옮기고, 화면은 Vercel 서버 함수 `/api/memos`를 통해 읽도록 변경했습니다.
 
+- `supabase/step2-memos.sql`: `owner_id uuid`, RLS 활성화, `anon`·`authenticated` 직접 권한 제거, `auth.users` 외래키 없음
 - `data.json`, `public/data.json`: 메모 0건 유지
 - `scripts/build-public.mjs`: 2단계 이후 빌드에서 공개 메모를 다시 복사하지 않음
 - `api/memos.js`: 서버에서 `SUPABASE_URL`, `SUPABASE_SECRET_KEY` 환경변수를 읽어 학습용 메모 조회
 - `public/index.html`: 브라우저는 서버 API만 호출해 카드 표시
 - `aleph.config.json`: 2단계와 실제 GitHub/Vercel 주소 반영
+- `vercel.json`: 첫 화면을 포함한 응답에 `X-Content-Type-Options: nosniff` 헤더 적용
 
 ## Vercel 환경변수
 
@@ -45,6 +47,7 @@ GitHub 기본 브랜치에서 아래 1단계 가상 메모 본문 문장을 각�
 3. `/aleph.json`을 열어 저장소·커밋·배포 정보가 현재 배포와 맞는지 확인합니다.
 4. GitHub 최신 파일에서 위 네 가상 메모 본문 문장을 각각 검색해 결과가 없는지 확인합니다.
 5. `/api/memos`를 비로그인 상태에서 호출할 수 있는 현재 단계의 약점을 별도로 기록합니다.
+6. 첫 화면 응답 헤더에 `X-Content-Type-Options: nosniff`가 있는지 확인합니다.
 
 ## 빌드
 
