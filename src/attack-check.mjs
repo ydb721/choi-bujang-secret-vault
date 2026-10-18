@@ -72,6 +72,6 @@ export async function runAttackChecks(config) {
       observed:httpObservation(deployed, deployed?.ok ? '; deployment_identity_available=true'
         : '; deployment_identity_available=false')},
     {attackId:'direct_no_key_probe',expected:'키 없이 직접 자료 API 요청 거부',
-      observed:httpObservation(directRes, '; anon_key_request=not_run')},
+      observed:httpObservation(directRes)},
   ];
 }

@@ -143,7 +143,62 @@ test('each executed stage 12 public check records its own response without reusi
     assert.equal(byId.get('static_memo_empty'), 'HTTP 404; static_memo_empty=true');
     assert.equal(byId.get('deployment_identity'),
       'HTTP 500; error=SERVER_ERROR; deployment_identity_available=false');
-    assert.equal(byId.get('direct_no_key_probe'), 'HTTP 200; anon_key_request=not_run');
+    assert.equal(byId.get('direct_no_key_probe'), 'HTTP 200');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('stage 12 sends five distinct GET requests and records only received responses', async () => {
+  const originalFetch = globalThis.fetch;
+  const runtimeConfig = { ...config, step: 12,
+    originalApiUrl: 'https://fixture.supabase.co/rest/v1/memos' };
+  const calls = [];
+  const responses = new Map([
+    ['https://student-defense.vercel.app/api/memos', [401, 'AUTH_REQUIRED']],
+    ['https://student-defense.vercel.app/api/memos/11111111-1111-4111-8111-111111111111',
+      [401, 'AUTH_REQUIRED']],
+    ['https://student-defense.vercel.app/data.json', [404, 'NOT_FOUND']],
+    ['https://student-defense.vercel.app/aleph.json', [200, null]],
+    ['https://fixture.supabase.co/rest/v1/memos', [403, 'FORBIDDEN']],
+  ]);
+  try {
+    globalThis.fetch = async (url, init) => {
+      const href = String(url);
+      calls.push({ url: href, method: init?.method });
+      const [status, error] = responses.get(href);
+      return new Response(JSON.stringify(error ? { error } : {}), { status,
+        headers: { 'content-type': 'application/json' } });
+    };
+    const results = await runAttackChecks(runtimeConfig);
+    assert.deepEqual(calls, [...responses.keys()].map(url => ({ url, method: 'GET' })));
+    const byId = new Map(results.map(result => [result.attackId, result.observed]));
+    assert.equal(byId.get('unauthenticated_memo_list'), 'HTTP 401; error=AUTH_REQUIRED');
+    assert.equal(byId.get('unauthenticated_memo_item'), 'HTTP 401; error=AUTH_REQUIRED');
+    assert.equal(byId.get('static_memo_empty'),
+      'HTTP 404; error=NOT_FOUND; static_memo_empty=true');
+    assert.equal(byId.get('deployment_identity'),
+      'HTTP 200; deployment_identity_available=true');
+    assert.equal(byId.get('direct_no_key_probe'), 'HTTP 403; error=FORBIDDEN');
+    assert.equal(byId.get('foreign_memo_scope'), 'not_run');
+
+    let callIndex = 0;
+    globalThis.fetch = async (url, init) => {
+      const href = String(url);
+      const index = callIndex++;
+      assert.equal(init?.method, 'GET');
+      if (index === 2) throw new TypeError('simulated send failure');
+      const [status, error] = responses.get(href);
+      return new Response(JSON.stringify(error ? { error } : {}), { status,
+        headers: { 'content-type': 'application/json' } });
+    };
+    const withFailure = new Map((await runAttackChecks(runtimeConfig))
+      .map(result => [result.attackId, result.observed]));
+    assert.equal(withFailure.get('static_memo_empty'), 'not_run');
+    assert.equal(withFailure.get('unauthenticated_memo_list'),
+      'HTTP 401; error=AUTH_REQUIRED');
+    assert.equal(withFailure.get('deployment_identity'),
+      'HTTP 200; deployment_identity_available=true');
   } finally {
     globalThis.fetch = originalFetch;
   }
