@@ -27,7 +27,6 @@
 | --- | --- | --- | --- | --- |
 | 3 | unauthenticated_memo_list | 금지 | `api/memos.js` 인증 게이트 · 사용자 요청 cookie-free GET | 미실행 |
 | 4 | foreign_memo_scope | 금지 | `api/memos.js` 소유자 필터 | 미실행 |
-| 5 | allowed_route_scope | 금지 | `aleph.config.json` 허용 경로 | 시험 정의 미확인 |
 | 10 | verified_restore_preview | 정상 | `api/restore/[id].js` | 미실행 |
 | 10 | restore_owner_or_backup_rejection | 금지 | `api/restore/[id].js` | 미실행 |
 | 11 | approved_signed_memo_list | 정상 | 기존 `signedFetch` 흐름 | 실제 응답이 있을 때만 기록 |
@@ -39,7 +38,7 @@
 
 공식 41종 공격의 식별자와 개별 실행 수단은 아직 제공되지 않았으므로 이 표나 작전실은 이를 공식 실행 결과로 만들지 않는다.
 
-1·2·6·7·8·9단계는 현재 작업본에서 이 형식으로 재현 가능한 HTTP 시험 정의와 안전한 실행 수단을 함께 확인하지 못했다. 따라서 이름만 만든 후보를 표에 추가하지 않으며, 제작 3 또는 공식 문서 확인 전까지 시험 정의 미확인으로 유지한다.
+1·2·5·6·7·8·9단계는 현재 작업본에서 재현 가능한 HTTP 시험 정의와 안전한 실행 수단을 함께 확인하지 못했다. 통합 검증표에는 각 단계를 **시험 정의 미확인 · 미실행** 행으로 표시한다. 이 행에는 가상 요청·예상 HTTP 상태·통과 기록을 만들지 않으며, 공식 41종 검사에 포함하거나 실제 실행 건수로 계산하지 않는다.
 
 ## 운영·격리 실행 경계
 

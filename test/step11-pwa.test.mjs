@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import vm from 'node:vm';
 
 const ORIGIN = 'https://pwa.example.test';
-const CACHE = 'byteback-public-v3';
+const CACHE = 'byteback-public-v4';
 const PUBLIC_PATHS = [
   '/offline.html',
   '/manifest.webmanifest',

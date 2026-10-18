@@ -23,10 +23,10 @@ const SAFE_ERROR_CODES = new Set([
 const SAFE_REQUEST_ID = /^[A-Za-z0-9._:-]{1,128}$/u;
 const SAFE_SERVER_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/u;
 
+// Keep official test definitions separate from stages whose HTTP scenarios are unknown.
 export const VERIFICATION_CASES = Object.freeze([
   { step: 3, testId: 'unauthenticated_memo_list', purpose: '무인증 메모 목록 차단', kind: 'prohibited', environment: 'operational', method: 'GET', path: '/api/memos', expectedStatuses: [401], expectedErrorCodes: ['AUTH_REQUIRED'], source: 'api/memos.js authentication gate', limitation: '사용자가 직접 실행한 credentials omit GET만 기록' },
   { step: 4, testId: 'foreign_memo_scope', purpose: '다른 소유자 메모 범위 차단', kind: 'prohibited', environment: 'isolation', method: 'GET', path: '/api/memos/:id', expectedStatuses: [403, 404], expectedErrorCodes: [], source: 'api/memos.js owner filter', limitation: '대상 소유자·ID를 화면에 기록하지 않음' },
-  { step: 5, testId: 'allowed_route_scope', purpose: '허용 API 경로 범위 확인', kind: 'prohibited', environment: 'local', method: 'GET', path: '/api/:unlisted', expectedStatuses: [], expectedErrorCodes: [], source: 'aleph.config.json allowedRoutes', limitation: '공식 HTTP 시험 정의 미확인' },
   { step: 10, testId: 'verified_restore_preview', purpose: '검증된 사본 복원 미리보기', kind: 'normal', environment: 'isolation', method: 'POST', path: '/api/restore/:id', expectedStatuses: [200], expectedErrorCodes: [], source: 'api/restore/[id].js', limitation: '복원 실행 없이 미리보기만 별도 승인 후 수행' },
   { step: 10, testId: 'restore_owner_or_backup_rejection', purpose: '소유자·백업 검증 실패 차단', kind: 'prohibited', environment: 'isolation', method: 'POST', path: '/api/restore/:id', expectedStatuses: [403, 404], expectedErrorCodes: ['BACKUP_UNVERIFIED'], source: 'api/restore/[id].js', limitation: '운영에서 상태 변경 시험 금지' },
   { step: 11, testId: 'approved_signed_memo_list', purpose: '승인 기기의 서명된 메모 조회', kind: 'normal', environment: 'operational', method: 'GET', path: '/api/memos', expectedStatuses: [200], expectedErrorCodes: [], source: 'public/index.html signedFetch', limitation: '응답 본문을 기록하지 않음' },
@@ -36,6 +36,11 @@ export const VERIFICATION_CASES = Object.freeze([
   { step: 11, testId: 'bound_body_rejected', purpose: '서명 후 본문 변조 차단', kind: 'prohibited', environment: 'isolation', method: 'PUT', path: '/api/memos/:id', expectedStatuses: [403], expectedErrorCodes: ['DEVICE_REQUEST_MISMATCH'], source: 'docs/DEVICE_REQUEST.md', limitation: '새 assertion을 쓰는 격리 시험 필요' },
   { step: 11, testId: 'nonce_reuse_rejected', purpose: 'nonce 재사용 차단', kind: 'prohibited', environment: 'isolation', method: 'GET', path: '/api/memos', expectedStatuses: [403], expectedErrorCodes: ['DEVICE_NONCE_REUSED'], source: 'docs/DEVICE_REQUEST.md', limitation: '첫 정상 요청과 재사용 요청을 구분 기록' },
 ]);
+
+export const UNDEFINED_VERIFICATION_STEPS = Object.freeze(
+  Array.from({ length: 11 }, (_, index) => index + 1)
+    .filter(step => !VERIFICATION_CASES.some(definition => definition.step === step)),
+);
 
 function safeErrorCode(value) {
   return typeof value === 'string' && SAFE_ERROR_CODES.has(value) ? value : null;
@@ -118,13 +123,15 @@ export function operationFailure(httpStatus = null) {
   };
 }
 
-export function protectedReadObservation({ httpStatus, checkedAt, origin, configuredOrigin }) {
+export function protectedReadObservation({ httpStatus, checkedAt, origin, configuredOrigin,
+  serverRequestId, serverObservedAt }) {
   const operational = typeof origin === 'string' && origin === configuredOrigin;
   return {
     status: operational ? STATUS.operationalObserved : STATUS.deploymentObserved,
     httpStatus: Number.isInteger(httpStatus) ? httpStatus : null,
     checkedAt: typeof checkedAt === 'string' ? checkedAt : null,
-    requestId: null,
+    requestId: safeRequestId(serverRequestId),
+    serverObservedAt: safeServerTime(serverObservedAt),
   };
 }
 
@@ -193,7 +200,7 @@ export function createOperationsRoom(root) {
 
   const renderVerification = () => {
     const byTestId = new Map(verificationRecords.map(record => [record.testId, record]));
-    const rows = VERIFICATION_CASES.map(definition => {
+    const definedRows = VERIFICATION_CASES.map(definition => {
       const record = byTestId.get(definition.testId);
       const row = element('tr');
       const cells = record
@@ -220,10 +227,30 @@ export function createOperationsRoom(root) {
       row.append(...cells.map(value => element('td', value)));
       return row;
     });
-    verificationTable.replaceChildren(...rows);
+    const undefinedRows = UNDEFINED_VERIFICATION_STEPS.map(step => {
+      const row = element('tr');
+      row.append(...[
+        step + ' · 시험 정의 미확인',
+        '정상·금지 요청 정의 미확인',
+        '확인된 HTTP 시험 경로 없음',
+        '공식 시험 정의 미확인',
+        '미실행',
+        '서버 제공 요청 ID 없음 · 시각 없음',
+        '시험 정의 미확인 · 미실행',
+        '실행 결과를 만들지 않았으며 통과에 포함하지 않음',
+      ].map(value => element('td', value)));
+      return { step, row };
+    });
+    const orderedRows = [
+      ...definedRows.map((row, index) => ({ step: VERIFICATION_CASES[index].step, row })),
+      ...undefinedRows,
+    ].sort((left, right) => left.step - right.step);
+    verificationTable.replaceChildren(...orderedRows.map(item => item.row));
     const passed = verificationRecords.filter(record => record.passed).length;
     verificationSummary.textContent = '실제 HTTP 응답 기록 ' + verificationRecords.length + '건 · 통과 ' + passed
-      + '건 · 미실행 후보 ' + (VERIFICATION_CASES.length - verificationRecords.length) + '건. 미실행은 통과에 포함하지 않습니다.';
+      + '건 · 미실행 후보 ' + (VERIFICATION_CASES.length - verificationRecords.length)
+      + '건 · 시험 정의 미확인 ' + UNDEFINED_VERIFICATION_STEPS.length
+      + '개 단계. 미실행과 정의 미확인은 통과에 포함하지 않습니다.';
   };
 
   const addVerification = (definition, response) => {
@@ -294,7 +321,7 @@ export function createOperationsRoom(root) {
       entries.unshift(card('보호 자료 접근 확인', protectedRead.status, [
         protectedRead.httpStatus == null ? 'HTTP 상태 미제공' : 'HTTP ' + protectedRead.httpStatus,
         timestamp(protectedRead.checkedAt),
-        '서버 제공 요청 ID 없음',
+        protectedRead.requestId ? '서버 제공 요청 ID ' + protectedRead.requestId : '서버 제공 요청 ID 없음',
       ]));
     }
 
@@ -431,6 +458,8 @@ export function createOperationsRoom(root) {
       protectedRead = protectedReadObservation({
         httpStatus: detail.httpStatus,
         checkedAt: detail.checkedAt,
+        serverRequestId: detail.serverRequestId,
+        serverObservedAt: detail.serverObservedAt,
         origin: window.location.origin,
         configuredOrigin: configuredOrigin(manifest),
       });
@@ -444,6 +473,7 @@ export function createOperationsRoom(root) {
         }
         protectedRead = protectedReadObservation({
           httpStatus: detail.httpStatus, checkedAt: detail.checkedAt,
+          serverRequestId: detail.serverRequestId, serverObservedAt: detail.serverObservedAt,
           origin: window.location.origin, configuredOrigin: configuredOrigin(manifest),
         });
         render();

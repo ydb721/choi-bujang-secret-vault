@@ -7,14 +7,15 @@
 - Release A/B 운영 배포 완료와 Vercel Serverless Function 12개는 사용자 제공 운영 기록입니다.
 - 이 작업본은 `aleph.config.json` step 12의 제작 1·2·3 통합 **저장점**입니다. 12단계 작전실의 운영 배포 완료는 사용자 제공 기록으로 확인했습니다.
 - 12단계 초기 공식 심판에서는 `S12_BUNDLE_UNSUPPORTED`로 0/100점이 반복되었습니다. 격리 실행에서 지원되지 않은 Git 하위 명령과 `node:fs`의 `statSync`, `URL.searchParams.set()` 사용을 순서대로 제거한 이력은 보존합니다.
-- 이후 공식 최고 기록은 **45/100점**, 실패 코드는 `S12_SCREEN_MISMATCH`입니다. 이 결과 뒤 제출 자기점검의 `attackAttempts`가 실제 HTTP 상태·오류 코드·`not_run`을 보존하도록 1차 수정했고, 작전실이 서버의 `X-Byteback-Trace` 요청 ID를 연결하도록 2차 수정했습니다.
-- 현재 `feature/step12-attack-records`의 최신 수정본은 아직 Production에 배포되지 않았습니다. `858c7cfb752b680c08125de40a8bccbf7f4ed846`에 대한 공식 심판 판정도 아직 없습니다.
+- 이전 공식 최고 기록은 **45/100점**, 당시 실패 코드는 `S12_SCREEN_MISMATCH`였습니다. 이 결과 뒤 제출 자기점검의 `attackAttempts`가 실제 HTTP 상태·오류 코드·`not_run`을 보존하도록 1차 수정했고, 작전실이 서버의 `X-Byteback-Trace` 요청 ID를 연결하도록 2차 수정했습니다.
+- 2026-10-18 확인된 `main`과 Vercel Production의 배포 커밋은 `a36a8ecba2a938019c2a650d087e424f16433448`로 일치합니다. 이전 `feature/step12-attack-records`의 요청 ID·자기점검 보완은 이 커밋에 포함되어 운영 반영된 상태입니다.
+- 이후 공식 심판은 `runner_task_environment:bundle:run_bundle_capability_unsupported:network_address_scope` / `UNV_RUN_ENVIRONMENT`를 반환했습니다. 심판 격리 환경에서 실행을 완료하지 못해 공식 최고점 45/100이 유지되었으며, 이 결과는 12단계 공격 방어의 통과 또는 실패 증거가 아닙니다.
 - 공식 41종 총공세 전체 통과, 12단계 100/100점 또는 실제 SDP 엔진 연동 성공을 주장하지 않습니다.
 - 현재 배포의 실제 커밋은 `/aleph.json`의 `commit` 필드와 GitHub 커밋을 대조하여 별도로 확인합니다.
 
 ## 12단계 제작 3 — 재현·운영 경계 안내
 
-이 절은 검사 기준 커밋 `e2b71097b641bccb8430c898cf65d416b569bd41`와 그 위에 생성한 **12단계 제작 1·2·3 통합 저장점**을 구분한다. 12단계 작전실 운영 배포 완료는 사용자 제공 기록으로 확인했지만, 현재 feature 브랜치의 제출 기록·요청 ID 수정은 Production 미배포이며 공식 재판정도 받지 않았다. 공식 41종 총공세 판정 역시 확인되지 않았다. 아래 오래된 단계별 기록은 삭제하지 않았으며 당시의 실험·배포 이력이다.
+이 절은 11단계 심판 기록 커밋 `e2b71097b641bccb8430c898cf65d416b569bd41`와 12단계 운영 기준 커밋 `a36a8ecba2a938019c2a650d087e424f16433448`를 구분한다. 제출 자기점검 및 서버 요청 ID 보완은 운영 기준 커밋에 반영되었다. 공식 12단계 최고점은 45/100이며, 최근 심판은 `UNV_RUN_ENVIRONMENT`로 실행 검증에 실패했다. 공식 41종 총공세 전체 결과는 확인되지 않았다. 아래 오래된 단계별 기록은 당시의 실험·배포 이력이다.
 
 ### 시스템 구성과 제공 엔진 경계
 

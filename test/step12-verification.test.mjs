@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import {
+  UNDEFINED_VERIFICATION_STEPS,
   VERIFICATION_CASES,
   compareVerification,
   recordVerification,
@@ -41,10 +42,11 @@ test('normal success and documented prohibited-request rejection have separate p
   assert.deepEqual(compareVerification(unauthenticated, { httpStatus: 401, errorCode: null }), { state: 'failed', passed: false });
 });
 
-test('unexecuted candidates have no record and cannot contribute to a pass count', () => {
-  const localOnly = VERIFICATION_CASES.find(value => value.testId === 'allowed_route_scope');
-  assert.deepEqual(compareVerification(localOnly, null), { state: 'not_run', passed: false });
-  assert.throws(() => recordVerification(localOnly, { httpStatus: 200 }, { clientCaseId: 'case-0' }), /INVALID_CLIENT_CASE_ID/u);
+test('unexecuted and undefined candidates cannot contribute to a pass count', () => {
+  const definedButUnexecuted = VERIFICATION_CASES.find(value => value.testId === 'foreign_memo_scope');
+  assert.deepEqual(compareVerification(definedButUnexecuted, null), { state: 'not_run', passed: false });
+  assert.equal(VERIFICATION_CASES.some(value => value.testId === 'allowed_route_scope'), false);
+  assert.equal(UNDEFINED_VERIFICATION_STEPS.includes(5), true);
 });
 
 test('verification UI uses generalized paths and clears protected records with the operations room', async () => {

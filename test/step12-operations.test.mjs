@@ -7,6 +7,8 @@ import {
   STATUS,
   operationFailure,
   protectedReadObservation,
+  UNDEFINED_VERIFICATION_STEPS,
+  VERIFICATION_CASES,
   summarizeDevices,
   validateManifest,
 } from '../public/operations.mjs';
@@ -26,6 +28,15 @@ test('operations manifest describes implementation only and never invents 41 att
   assert.equal(manifest.judgeRecord.status, 'user_reported');
 });
 
+test('every stage 1-11 is represented without fabricating unavailable HTTP definitions', () => {
+  assert.deepEqual(UNDEFINED_VERIFICATION_STEPS, [1, 2, 5, 6, 7, 8, 9]);
+  assert.equal(VERIFICATION_CASES.length, 10);
+  assert.deepEqual(
+    [...new Set([...VERIFICATION_CASES.map(record => record.step), ...UNDEFINED_VERIFICATION_STEPS])].sort((a, b) => a - b),
+    Array.from({ length: 11 }, (_, i) => i + 1),
+  );
+});
+
 test('device observations contain state counts only, not protected device identifiers', () => {
   const summary = summarizeDevices({ devices: [
     { id: 'private-device-row', credentialId: 'private-credential', fingerprint: 'private-fingerprint', state: 'approved' },
@@ -41,9 +52,16 @@ test('device observations contain state counts only, not protected device identi
 
 test('operational, deployment, and failure observations remain distinct', () => {
   const production = 'https://choi-bujang-secret-vault-pink.vercel.app';
-  assert.equal(protectedReadObservation({
+  const signed = protectedReadObservation({
     httpStatus: 200, checkedAt: '2026-10-18T00:00:00.000Z', origin: production, configuredOrigin: production,
-  }).status, STATUS.operationalObserved);
+    serverRequestId: 'trace-signed-200',
+  });
+  assert.equal(signed.status, STATUS.operationalObserved);
+  assert.equal(signed.requestId, 'trace-signed-200');
+  assert.equal(protectedReadObservation({
+    httpStatus: 200, origin: production, configuredOrigin: production,
+    serverRequestId: 'contains spaces and private data',
+  }).requestId, null);
   assert.equal(protectedReadObservation({
     httpStatus: 200, checkedAt: '2026-10-18T00:00:00.000Z', origin: 'https://preview.example.test', configuredOrigin: production,
   }).status, STATUS.deploymentObserved);

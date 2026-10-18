@@ -128,6 +128,9 @@ test('operations records the real trace header for signed 200 and unauthenticate
     await settle();
     await settle();
     assert.match(text(nodes.get('#verification-table-body')), /trace-signed-200/u);
+    assert.match(text(nodes.get('#operations-list')), /서버 제공 요청 ID trace-signed-200/u);
+    assert.match(text(nodes.get('#verification-table-body')), /1 · 시험 정의 미확인/u);
+    assert.match(nodes.get('#verification-summary').textContent, /시험 정의 미확인 7개 단계/u);
 
     nodes.get('#operations-unauthenticated-check').click();
     await settle();
