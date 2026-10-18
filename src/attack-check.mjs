@@ -4,7 +4,7 @@ export async function runAttackChecks(config) {
   // The judge's isolated runner supports public GET/HEAD only and may not
   // implement timeout helpers or nonessential fetch options.
   const publicGet = async (url) => {
-    try { return await fetch(url, { method: 'GET' }); }
+    try { return await fetch(String(url), { method: 'GET' }); }
     catch { return null; }
   };
   const inspectResponse = async (response) => {
