@@ -16,9 +16,9 @@
     },
     {
       "alertId": "bf-03",
-      "action": "alert",
-      "confidence": 0.8,
-      "reason": "여러 계정에 동일 비밀번호 대입"
+      "action": "block",
+      "confidence": 0.9,
+      "reason": "T1110: 다계정 자동화 로그인 실패가 명시된 대량 인증 시도"
     },
     {
       "alertId": "bf-04",
@@ -28,9 +28,9 @@
     },
     {
       "alertId": "bf-05",
-      "action": "alert",
-      "confidence": 0.82,
-      "reason": "여러 계정에 동일 비밀번호 대입"
+      "action": "block",
+      "confidence": 0.88,
+      "reason": "T1110: 다계정 자동화 로그인 실패가 명시된 대량 인증 시도"
     },
     {
       "alertId": "bf-06",
@@ -172,8 +172,8 @@
     }
   ],
   "counts": {
-    "block": 8,
-    "alert": 11,
+    "block": 10,
+    "alert": 9,
     "record": 9
   }
 }

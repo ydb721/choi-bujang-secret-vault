@@ -134,9 +134,14 @@ export function decide(alert) {
     spraying = mitre ? 0.97 : 0.9;
   } else if (isMulti && samePassword) {
     spraying = mitre ? 0.7 : 0.55;
-  } else if (isMulti && multiCount >= 15 && regularAutomation) {
-    // 여러 계정의 자동화 정황일 뿐 동일 비밀번호는 미확인: 알림만.
-    spraying = mitre ? 0.82 : 0.68;
+  } else if (isMulti && highCount && shortWindow && ruleLevel >= 10) {
+    // 계정 전환 자체와 짧은 창의 대량 실패가 함께 명시되면, 비밀번호 값은
+    // 알 수 없어도 T1110의 명확한 자동화 인증 공격 근거가 된다.
+    spraying = mitre ? 0.9 : 0.74;
+  } else if (isMulti && multiCount >= 15 && count >= multiCount && regularAutomation && ruleLevel >= 10) {
+    // 다수 계정에 일정 간격으로 반복한 실패는 같은 비밀번호를 추정하지 않고도
+    // 명확한 자동화 대입 근거다.
+    spraying = mitre ? 0.88 : 0.74;
   } else if (isMulti && highCount && shortWindow) {
     spraying = mitre ? 0.8 : 0.68;
   } else if (isMulti && count > 0 && mitre) {
@@ -146,9 +151,12 @@ export function decide(alert) {
   const matchedIndex = spraying > repeated ? 1 : 0;
   const confidence = Math.max(repeated, spraying);
   if (confidence < 0.5) return noMatch;
+  const broadMultiAccountAttack = !samePassword && isMulti && spraying >= 0.85;
   return {
     action: confidence >= 0.85 ? 'block' : 'alert',
     confidence,
-    reason: PATTERNS[matchedIndex].name,
+    reason: broadMultiAccountAttack
+      ? 'T1110: 다계정 자동화 로그인 실패가 명시된 대량 인증 시도'
+      : PATTERNS[matchedIndex].name,
   };
 }
