@@ -1,0 +1,35 @@
+{
+  "mitreTechnique": "T1110",
+  "patterns": [
+    {
+      "name": "동일 주소·계정의 단시간 로그인 실패 반복",
+      "mitreId": "T1110.001",
+      "condition": {
+        "sourceAddressField": "data.srcip",
+        "accountField": "data.srcuser",
+        "failureCountField": "data.count",
+        "summaryField": "rule.description",
+        "sameSourceAddress": true,
+        "sameAccount": true,
+        "windowSeconds": 180,
+        "minimumFailures": 30,
+        "requireExplicitFailureAndWindowEvidence": true
+      },
+      "evidence": "MITRE ATT&CK T1110.001: 같은 계정에 비밀번호를 반복 추측하면 단시간에 연속된 인증 실패가 발생할 수 있다."
+    },
+    {
+      "name": "여러 계정에 동일 비밀번호 대입",
+      "mitreId": "T1110.003",
+      "condition": {
+        "sourceAddressField": "data.srcip",
+        "accountListField": "data.accounts",
+        "summaryField": "rule.description",
+        "minimumDistinctAccounts": 8,
+        "sameSourceAddress": true,
+        "requireExplicitSamePasswordEvidence": true,
+        "inspectOrStorePasswordValue": false
+      },
+      "evidence": "MITRE ATT&CK T1110.003: 동일하거나 소수의 비밀번호를 여러 계정에 반복 대입하는 방식은 패스워드 스프레잉에 해당한다."
+    }
+  ]
+}
