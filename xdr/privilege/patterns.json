@@ -1,0 +1,111 @@
+{
+  "mitreTechniques": ["T1068", "T1078"],
+  "patterns": [
+    {
+      "name": "일반 계정의 관리자 그룹 추가 직후 관리자 명령 실행",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "groupField": "data.group",
+        "requireTechniqueOneOf": ["T1068", "T1078"],
+        "requireAdministrativeGroupAdditionAndCommand": true,
+        "requireExplicitImmediateOrNewAdministratorContext": true,
+        "excludeNonAdministrativeGroups": ["project-week3", "lab-notes", "class-readers"],
+        "excludeCancelledOrFailedCommand": true
+      },
+      "evidence": "T1068/T1078: 일반 계정이 관리자 그룹에 추가된 직후 관리자 명령을 실행하면 권한 탈취의 직접적인 결합 근거입니다."
+    },
+    {
+      "name": "낯선 주소의 업무 시간 밖 관리자 명령 실행",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "sourceAddressField": "data.srcip",
+        "requireMitreTechnique": "T1068",
+        "requireUnfamiliarSourceAddress": true,
+        "requireOutsideBusinessOrClassHours": true,
+        "requireAdministratorCommand": true,
+        "excludeSingleUsualAddressCommand": true
+      },
+      "evidence": "T1068: 낯선 주소에서 업무 시간 밖에 실행된 관리자 명령은 단발성 정상 관리자 사용과 구별되는 권한 상승 의심 근거입니다."
+    },
+    {
+      "name": "동일 출발 주소의 여러 계정 관리자 그룹 추가",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "sourceAddressField": "data.srcip",
+        "groupField": "data.group",
+        "countField": "data.count",
+        "requireMitreTechnique": "T1078",
+        "requireAdministrativeGroup": true,
+        "minimumDistinctAccounts": 4,
+        "requireSameSourceAddress": true,
+        "excludeSingleAccountGroupChange": true
+      },
+      "evidence": "T1078: 같은 출발 주소에서 여러 계정이 관리자 그룹에 추가되면 정상 계정 악용을 통한 대량 권한 상승 근거가 됩니다."
+    },
+    {
+      "name": "낯선 주소의 관리자 세션 권한 변경",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "sourceAddressField": "data.srcip",
+        "requireMitreTechnique": "T1068",
+        "requireSessionPrivilegeChangedToAdministrator": true,
+        "requireUnfamiliarSourceAddress": true,
+        "excludeSessionInformationReadOnly": true
+      },
+      "evidence": "T1068: 세션 권한이 관리자 수준으로 바뀌고 요청 주소도 처음 보는 경우 갑작스러운 권한 상승의 명시적 근거입니다."
+    },
+    {
+      "name": "업무 외 시간 관리자 그룹 추가와 명령 실행 결합",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "groupField": "data.group",
+        "requireTechniqueOneOf": ["T1068", "T1078"],
+        "requireAdministrativeGroupAddition": true,
+        "requireAdministratorCommand": true,
+        "requireOutsideBusinessContext": true,
+        "excludeClassTimeOrCancelledCommand": true
+      },
+      "evidence": "T1068/T1078: 업무 시간 밖 관리자 그룹 추가와 명령 실행이 함께 있으면 권한 탈취를 위한 연속 행위 근거가 됩니다."
+    },
+    {
+      "name": "다른 계정 권한을 이용한 관리자 명령 실행",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "accountField": "data.srcuser",
+        "requireMitreTechnique": "T1068",
+        "requireExplicitOtherAccountAuthorityUse": true,
+        "requireAdministratorCommand": true,
+        "excludeOwnAccountOrReadOnlyActivity": true
+      },
+      "evidence": "T1068: 다른 계정의 권한으로 관리자 명령을 실행한 사실은 계정·권한 도용의 직접적인 근거입니다."
+    },
+    {
+      "name": "제거 직후 관리자 그룹 재등록",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "groupField": "data.group",
+        "countField": "data.count",
+        "requireMitreTechnique": "T1078",
+        "requireAdministrativeGroup": true,
+        "requireExplicitRemovalThenReaddition": true,
+        "requireShortIntervalEvidence": true,
+        "excludeRoutineGroupDescriptionChange": true
+      },
+      "evidence": "T1078: 관리자 그룹에서 제거된 계정이 짧은 시간 안에 다시 등록되면 권한 유지·탈취 시도의 명시적 근거입니다."
+    }
+  ]
+}
