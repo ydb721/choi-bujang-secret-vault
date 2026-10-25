@@ -88,5 +88,15 @@ export function decide(alert) {
     };
   }
 
+  // A valid T1190 Wazuh finding without block-grade evidence remains reviewable.
+  // This preserves an ambiguous detector signal without promoting it to a denial rule.
+  if (mitre && count > 0) {
+    return {
+      action: 'alert',
+      confidence: 0.5,
+      reason: 'T1190 경보: 차단 근거가 부족한 웹 주입 의심',
+    };
+  }
+
   return NO_MATCH;
 }
