@@ -1,0 +1,69 @@
+{
+  "mitreTechnique": "T1190",
+  "patterns": [
+    {
+      "name": "반복된 명시적 SQL 주입 구문 탐지",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "countField": "data.count",
+        "minimumRuleLevel": 10,
+        "minimumCount": 10,
+        "requireMitreTechnique": "T1190",
+        "requireExplicitSqlInjectionEvidence": true,
+        "requireRepeatedAttempts": true,
+        "excludeStandaloneSearchTerms": ["select", "sql"]
+      },
+      "evidence": "T1190: 경보 설명에 명시된 SQL 주입 구문이 높은 규칙 수준에서 반복되면 공개 웹 애플리케이션 입력값 악용 시도 근거가 된다."
+    },
+    {
+      "name": "반복된 명시적 스크립트 삽입 표식 탐지",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "countField": "data.count",
+        "minimumRuleLevel": 10,
+        "minimumCount": 9,
+        "requireMitreTechnique": "T1190",
+        "requireExplicitScriptInjectionEvidence": true,
+        "requireRepeatedAttempts": true,
+        "excludeStandaloneSearchTerms": ["script"]
+      },
+      "evidence": "T1190: 스크립트 삽입 표식이 설명에 명시되고 반복되면 공개 웹 애플리케이션의 입력 처리 취약점 악용 시도 근거가 된다."
+    },
+    {
+      "name": "반복된 상위 경로 탐색 표식 탐지",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "countField": "data.count",
+        "minimumRuleLevel": 11,
+        "minimumCount": 8,
+        "requireMitreTechnique": "T1190",
+        "requireExplicitPathTraversalEvidence": true,
+        "requireParentPathTraversalForm": "../",
+        "requireRepeatedAttempts": true,
+        "excludeStandaloneSearchTerms": ["up"]
+      },
+      "evidence": "T1190: 설명에 ../ 형태의 상위 경로 탐색 표식이 명시되고 반복되면 공개 경로 처리 취약점 악용 시도 근거가 된다."
+    },
+    {
+      "name": "반복된 명령 구분자 주입 표식 탐지",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "countField": "data.count",
+        "minimumRuleLevel": 11,
+        "minimumCount": 10,
+        "requireMitreTechnique": "T1190",
+        "requireExplicitCommandSeparatorEvidence": true,
+        "requireRepeatedAttempts": true
+      },
+      "evidence": "T1190: 명령 구분자 주입 표식이 설명에 명시되고 고수준 경보로 반복되면 공개 웹 애플리케이션 입력값 악용 시도 근거가 된다."
+    }
+  ]
+}
