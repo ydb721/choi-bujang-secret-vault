@@ -1,0 +1,63 @@
+{
+  "mitreTechniques": ["T1543", "T1053"],
+  "patterns": [
+    {
+      "name": "서명 없는 새 서비스 등록 또는 실행 파일 변경",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "pathField": "data.path",
+        "countField": "data.count",
+        "requireMitreTechnique": "T1543",
+        "requireExplicitUnsignedServiceEvidence": true,
+        "requireNewServiceRegistrationOrExecutableChange": true,
+        "allowRepeatedRemoteRegistrationEvidence": true,
+        "excludeExplicitBenignServiceEvidence": true
+      },
+      "evidence": "T1543: 서명 없는 새 서비스 등록이나 서비스 실행 파일 변경은 시스템 프로세스 지속성 악용의 직접적인 근거입니다."
+    },
+    {
+      "name": "낯선 예약 작업의 임시 폴더 실행 파일",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "pathField": "data.path",
+        "requireMitreTechnique": "T1053",
+        "requireUnfamiliarTaskOrRandomTaskName": true,
+        "requireTemporaryDirectoryExecutable": true,
+        "excludeExplicitNormalScheduleEvidence": true
+      },
+      "evidence": "T1053: 낯선 예약 작업이 임시 폴더의 실행 파일을 실행하면 예약 작업을 이용한 지속성 등록 근거가 됩니다."
+    },
+    {
+      "name": "시작 폴더 또는 시작 프로그램의 비정상 등록",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "pathField": "data.path",
+        "requireTechniqueOneOf": ["T1543", "T1053"],
+        "requireStartupFolderOrStartupProgram": true,
+        "requireUnexpectedAdditionOrSharedTemporaryExecutable": true,
+        "excludeReadOnlyOrExplicitNormalStartupEvidence": true
+      },
+      "evidence": "T1543/T1053: 시작 폴더·시작 프로그램의 예상 밖 등록은 재시작 뒤 실행을 노린 지속성 근거입니다."
+    },
+    {
+      "name": "평소 목록에 없는 서비스의 재시작 지속 등록",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "pathField": "data.path",
+        "requireMitreTechnique": "T1543",
+        "requireUnexpectedService": true,
+        "requireExplicitSurvivesRestartRegistration": true,
+        "excludeExplicitApprovedOrSignedServiceEvidence": true
+      },
+      "evidence": "T1543: 평소 목록에 없는 서비스가 재시작 후에도 남도록 등록되면 서비스 기반 지속성의 명시적 근거입니다."
+    }
+  ]
+}
