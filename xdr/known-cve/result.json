@@ -1,0 +1,155 @@
+{
+  "schema": "aleph.xdr.result.v1",
+  "moduleKey": "known-cve",
+  "decisions": [
+    {
+      "alertId": "kc-01",
+      "action": "block",
+      "confidence": 0.93,
+      "reason": "머리글의 명시적 JNDI 원격 조회 구문"
+    },
+    {
+      "alertId": "kc-02",
+      "action": "block",
+      "confidence": 0.91,
+      "reason": "URL 또는 요청 인자의 명시적 JNDI 원격 조회 구문"
+    },
+    {
+      "alertId": "kc-03",
+      "action": "block",
+      "confidence": 0.91,
+      "reason": "URL 또는 요청 인자의 명시적 JNDI 원격 조회 구문"
+    },
+    {
+      "alertId": "kc-04",
+      "action": "block",
+      "confidence": 0.93,
+      "reason": "머리글의 명시적 JNDI 원격 조회 구문"
+    },
+    {
+      "alertId": "kc-05",
+      "action": "block",
+      "confidence": 0.96,
+      "reason": "명시적 Log4Shell 취약점 점검 도구 흔적"
+    },
+    {
+      "alertId": "kc-06",
+      "action": "block",
+      "confidence": 0.91,
+      "reason": "URL 또는 요청 인자의 명시적 JNDI 원격 조회 구문"
+    },
+    {
+      "alertId": "kc-07",
+      "action": "block",
+      "confidence": 0.93,
+      "reason": "머리글의 명시적 JNDI 원격 조회 구문"
+    },
+    {
+      "alertId": "kc-08",
+      "action": "block",
+      "confidence": 0.93,
+      "reason": "머리글의 명시적 JNDI 원격 조회 구문"
+    },
+    {
+      "alertId": "kc-09",
+      "action": "alert",
+      "confidence": 0.55,
+      "reason": "T1190 경보: 명시적 JNDI 원격 조회 구문 미확인"
+    },
+    {
+      "alertId": "kc-10",
+      "action": "alert",
+      "confidence": 0.55,
+      "reason": "T1190 경보: 명시적 JNDI 원격 조회 구문 미확인"
+    },
+    {
+      "alertId": "kc-11",
+      "action": "alert",
+      "confidence": 0.55,
+      "reason": "T1190 경보: 명시적 JNDI 원격 조회 구문 미확인"
+    },
+    {
+      "alertId": "kc-12",
+      "action": "alert",
+      "confidence": 0.55,
+      "reason": "T1190 경보: 명시적 JNDI 원격 조회 구문 미확인"
+    },
+    {
+      "alertId": "kc-13",
+      "action": "alert",
+      "confidence": 0.55,
+      "reason": "T1190 경보: 명시적 JNDI 원격 조회 구문 미확인"
+    },
+    {
+      "alertId": "kc-14",
+      "action": "alert",
+      "confidence": 0.55,
+      "reason": "T1190 경보: 명시적 JNDI 원격 조회 구문 미확인"
+    },
+    {
+      "alertId": "kc-15",
+      "action": "alert",
+      "confidence": 0.55,
+      "reason": "T1190 경보: 명시적 JNDI 원격 조회 구문 미확인"
+    },
+    {
+      "alertId": "kc-16",
+      "action": "alert",
+      "confidence": 0.55,
+      "reason": "T1190 경보: 명시적 JNDI 원격 조회 구문 미확인"
+    },
+    {
+      "alertId": "kc-17",
+      "action": "record",
+      "confidence": 0,
+      "reason": "알려진 취약점 악용 근거 없음"
+    },
+    {
+      "alertId": "kc-18",
+      "action": "record",
+      "confidence": 0,
+      "reason": "알려진 취약점 악용 근거 없음"
+    },
+    {
+      "alertId": "kc-19",
+      "action": "record",
+      "confidence": 0,
+      "reason": "알려진 취약점 악용 근거 없음"
+    },
+    {
+      "alertId": "kc-20",
+      "action": "record",
+      "confidence": 0,
+      "reason": "알려진 취약점 악용 근거 없음"
+    },
+    {
+      "alertId": "kc-21",
+      "action": "record",
+      "confidence": 0,
+      "reason": "알려진 취약점 악용 근거 없음"
+    },
+    {
+      "alertId": "kc-22",
+      "action": "record",
+      "confidence": 0,
+      "reason": "알려진 취약점 악용 근거 없음"
+    },
+    {
+      "alertId": "kc-23",
+      "action": "record",
+      "confidence": 0,
+      "reason": "알려진 취약점 악용 근거 없음"
+    },
+    {
+      "alertId": "kc-24",
+      "action": "record",
+      "confidence": 0,
+      "reason": "알려진 취약점 악용 근거 없음"
+    }
+  ],
+  "counts": {
+    "block": 8,
+    "alert": 8,
+    "record": 8
+  }
+}

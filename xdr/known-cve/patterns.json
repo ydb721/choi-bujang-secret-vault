@@ -1,0 +1,49 @@
+{
+  "mitreTechnique": "T1190",
+  "cve": "CVE-2021-44228",
+  "patterns": [
+    {
+      "name": "머리글의 명시적 JNDI 원격 조회 구문",
+      "condition": {
+        "descriptionField": "rule.description",
+        "headerField": "data.useragent",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "requireMitreTechnique": "T1190",
+        "requireJndiRemoteLookupInHeader": true,
+        "requireExplicitCveOrRemoteLookupContext": true,
+        "excludeStandaloneTerms": ["jndi", "cve-2021-44228"]
+      },
+      "evidence": "T1190: HTTP 머리글의 완전한 JNDI 원격 조회 구문은 Log4Shell(CVE-2021-44228) 악용 시도와 직접 연결되는 입력 근거입니다."
+    },
+    {
+      "name": "URL 또는 요청 인자의 명시적 JNDI 원격 조회 구문",
+      "condition": {
+        "descriptionField": "rule.description",
+        "urlField": "data.url",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "requireMitreTechnique": "T1190",
+        "requireJndiRemoteLookupInUrlOrParameters": true,
+        "requireExplicitCveOrRemoteLookupContext": true,
+        "excludeStandaloneTerms": ["jndi", "cve-2021-44228"]
+      },
+      "evidence": "T1190: URL이나 요청 인자에 포함된 완전한 JNDI 원격 조회 구문은 공개 애플리케이션의 Log4Shell 악용 입력 근거입니다."
+    },
+    {
+      "name": "명시적 Log4Shell 취약점 점검 도구 흔적",
+      "condition": {
+        "descriptionField": "rule.description",
+        "urlField": "data.url",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "requireMitreTechnique": "T1190",
+        "requireExplicitKnownCveScannerEvidence": true,
+        "requireCve202144228Context": true,
+        "requireJndiRemoteLookupInUrlOrParameters": true,
+        "excludeEducationOrNameOnlyReferences": true
+      },
+      "evidence": "T1190: CVE-2021-44228 점검 도구 흔적과 실제 JNDI 원격 조회 입력이 함께 확인되면 알려진 취약점 악용 탐색 근거가 됩니다."
+    }
+  ]
+}
