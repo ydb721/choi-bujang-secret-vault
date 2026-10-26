@@ -1,0 +1,187 @@
+{
+  "mitreTechniques": ["T1041", "T1048"],
+  "fieldHandling": {
+    "numericStringFields": ["data.bytes", "data.files", "data.count"],
+    "numericRule": "십진 숫자 문자열만 양의 정수로 변환하며, bytes는 전송량, files는 파일 수, count는 전송 반복 횟수로 각각 따로 평가한다.",
+    "destinationRule": "data.dstip는 실제 전송 목적지 존재 여부만 확인하며, IP 값만으로 신뢰되거나 악성인 목적지로 단정하지 않는다."
+  },
+  "patterns": [
+    {
+      "name": "낯선 외부 목적지의 대용량·다량 자료 전송",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "destinationField": "data.dstip",
+        "bytesField": "data.bytes",
+        "filesField": "data.files",
+        "requireTechniqueOneOf": ["T1041", "T1048"],
+        "requireExplicitUnfamiliarOrExternalDestination": true,
+        "requireExplicitCompletedTransfer": true,
+        "minimumPositiveBytes": 50000000,
+        "minimumFilesOrExplicitBatchTransfer": 50,
+        "excludeFailedOrNoTransfer": true,
+        "excludeSmallSyncOrSingleSmallFile": true
+      },
+      "evidence": "T1041/T1048: 낯선 외부 목적지로 실제 전송된 대용량 또는 다량 자료는 단순 조회·동기화와 구별되는 유출 근거입니다."
+    },
+    {
+      "name": "업무 시간 밖 낯선 목적지의 압축 파일 반출",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "destinationField": "data.dstip",
+        "bytesField": "data.bytes",
+        "filesField": "data.files",
+        "requireMitreTechnique": "T1048",
+        "requireOutsideBusinessOrClassHours": true,
+        "requireCompressedFile": true,
+        "requireExplicitUnfamiliarDestination": true,
+        "requireExplicitCompletedTransfer": true,
+        "minimumPositiveBytes": 50000000,
+        "excludeCompressionWithoutTransfer": true,
+        "excludeFailedTransfer": true
+      },
+      "evidence": "T1048: 업무 시간 밖에 압축 파일이 낯선 목적지로 실제 반출되면 대체 통로를 통한 자료 유출 정황이 결합됩니다."
+    },
+    {
+      "name": "동일 목적지의 반복 대용량 전송",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "destinationField": "data.dstip",
+        "bytesField": "data.bytes",
+        "countField": "data.count",
+        "requireMitreTechnique": "T1041",
+        "requireExplicitSameDestination": true,
+        "requireExplicitRepeatedTransfer": true,
+        "minimumPositiveBytes": 50000000,
+        "minimumTransferCount": 5,
+        "excludeSingleTransfer": true,
+        "excludeFailedTransfer": true
+      },
+      "evidence": "T1041: 같은 목적지로 반복된 대용량 전송은 단발성 전송보다 명확한 명령·제어 통로 유출 근거입니다."
+    },
+    {
+      "name": "비정상 통로의 다량 자료 연속 전송",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "destinationField": "data.dstip",
+        "bytesField": "data.bytes",
+        "filesField": "data.files",
+        "requireMitreTechnique": "T1048",
+        "requireExplicitUnusedPortOrUnusualChannel": true,
+        "requireExplicitCompletedTransfer": true,
+        "minimumPositiveBytes": 50000000,
+        "minimumFiles": 50,
+        "excludeChannelMentionWithoutTransfer": true,
+        "excludeFailedTransfer": true
+      },
+      "evidence": "T1048: 평소 쓰지 않던 통로로 다량의 자료가 실제 연속 전송되면 대체 프로토콜 유출 근거가 됩니다."
+    },
+    {
+      "name": "업무 시간 밖 동일 목적지 반복 반출",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "destinationField": "data.dstip",
+        "bytesField": "data.bytes",
+        "countField": "data.count",
+        "requireMitreTechnique": "T1048",
+        "requireOutsideBusinessOrClassHours": true,
+        "requireExplicitSameDestination": true,
+        "requireExplicitRepeatedTransfer": true,
+        "minimumPositiveBytes": 50000000,
+        "minimumTransferCount": 5,
+        "excludeSingleTransfer": true,
+        "excludeFailedTransfer": true
+      },
+      "evidence": "T1048: 업무 시간 밖 동일 목적지로 반복된 대용량 반출은 정상적인 단발성 동기화와 구별되는 유출 정황입니다."
+    },
+    {
+      "name": "낯선 목적지의 압축 파일 연속 업로드",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "destinationField": "data.dstip",
+        "bytesField": "data.bytes",
+        "filesField": "data.files",
+        "requireMitreTechnique": "T1048",
+        "requireCompressedFile": true,
+        "requireExplicitUnfamiliarDestination": true,
+        "requireExplicitContinuousUpload": true,
+        "requireExplicitCompletedTransfer": true,
+        "minimumPositiveBytes": 50000000,
+        "excludeCompressionWithoutTransfer": true,
+        "excludeFailedTransfer": true
+      },
+      "evidence": "T1048: 여러 압축 파일이 낯선 목적지로 연속 업로드된 사실은 단순 압축 생성과 다른 실제 반출 근거입니다."
+    },
+    {
+      "name": "자료실 전체의 외부 복사",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "destinationField": "data.dstip",
+        "bytesField": "data.bytes",
+        "filesField": "data.files",
+        "requireMitreTechnique": "T1041",
+        "requireExplicitWholeRepositoryOrCollectionCopy": true,
+        "requireExplicitExternalDestination": true,
+        "requireExplicitCompletedTransfer": true,
+        "minimumPositiveBytes": 50000000,
+        "minimumFiles": 50,
+        "excludeReadOnlyOrLocalCopy": true,
+        "excludeFailedTransfer": true
+      },
+      "evidence": "T1041: 자료실 전체가 외부 목적지로 실제 복사된 정황은 대량 자료 유출을 직접 뒷받침합니다."
+    },
+    {
+      "name": "명령 통로의 대용량 반복 전송",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "destinationField": "data.dstip",
+        "bytesField": "data.bytes",
+        "countField": "data.count",
+        "requireMitreTechnique": "T1041",
+        "requireExplicitCommandAndControlChannel": true,
+        "requireExplicitLargeFile": true,
+        "requireExplicitRepeatedTransfer": true,
+        "requireExplicitCompletedTransfer": true,
+        "minimumPositiveBytes": 50000000,
+        "minimumTransferCount": 5,
+        "excludeSmallNameOnlyObservation": true,
+        "excludeFailedTransfer": true
+      },
+      "evidence": "T1041: 명령 통로로 대용량 파일이 반복 전송된 사실은 명령·제어 통로를 통한 유출 근거입니다."
+    },
+    {
+      "name": "여러 낯선 목적지로 동일 압축 파일 반출",
+      "condition": {
+        "descriptionField": "rule.description",
+        "levelField": "rule.level",
+        "mitreField": "rule.mitre",
+        "destinationField": "data.dstip",
+        "bytesField": "data.bytes",
+        "filesField": "data.files",
+        "requireMitreTechnique": "T1048",
+        "requireExplicitMultipleUnfamiliarDestinations": true,
+        "requireExplicitSameCompressedFile": true,
+        "requireExplicitCompletedTransfer": true,
+        "minimumPositiveBytes": 50000000,
+        "excludeSingleDestinationOrCompressionOnly": true,
+        "excludeFailedTransfer": true
+      },
+      "evidence": "T1048: 동일 압축 파일이 여러 낯선 목적지로 실제 반출된 정황은 단일 정상 목적지 동기화와 구별됩니다."
+    }
+  ]
+}

@@ -1,0 +1,191 @@
+{
+  "schema": "aleph.xdr.result.v1",
+  "moduleKey": "exfiltration",
+  "decisions": [
+    {
+      "alertId": "ex-01",
+      "action": "block",
+      "confidence": 0.91,
+      "reason": "낯선 외부 목적지의 대용량·다량 자료 전송"
+    },
+    {
+      "alertId": "ex-02",
+      "action": "block",
+      "confidence": 0.91,
+      "reason": "업무 시간 밖 낯선 목적지의 압축 파일 반출"
+    },
+    {
+      "alertId": "ex-03",
+      "action": "block",
+      "confidence": 0.91,
+      "reason": "동일 목적지의 반복 대용량 전송"
+    },
+    {
+      "alertId": "ex-04",
+      "action": "block",
+      "confidence": 0.91,
+      "reason": "비정상 통로의 다량 자료 연속 전송"
+    },
+    {
+      "alertId": "ex-05",
+      "action": "block",
+      "confidence": 0.91,
+      "reason": "낯선 외부 목적지의 대용량·다량 자료 전송"
+    },
+    {
+      "alertId": "ex-06",
+      "action": "block",
+      "confidence": 0.91,
+      "reason": "업무 시간 밖 동일 목적지 반복 반출"
+    },
+    {
+      "alertId": "ex-07",
+      "action": "block",
+      "confidence": 0.91,
+      "reason": "낯선 목적지의 압축 파일 연속 업로드"
+    },
+    {
+      "alertId": "ex-08",
+      "action": "block",
+      "confidence": 0.91,
+      "reason": "자료실 전체의 외부 복사"
+    },
+    {
+      "alertId": "ex-09",
+      "action": "block",
+      "confidence": 0.96,
+      "reason": "낯선 외부 목적지의 대용량·다량 자료 전송 / 명령 통로의 대용량 반복 전송"
+    },
+    {
+      "alertId": "ex-10",
+      "action": "block",
+      "confidence": 0.91,
+      "reason": "여러 낯선 목적지로 동일 압축 파일 반출"
+    },
+    {
+      "alertId": "ex-11",
+      "action": "alert",
+      "confidence": 0.6,
+      "reason": "추가 확인이 필요한 자료 유출 의심 신호"
+    },
+    {
+      "alertId": "ex-12",
+      "action": "alert",
+      "confidence": 0.6,
+      "reason": "추가 확인이 필요한 자료 유출 의심 신호"
+    },
+    {
+      "alertId": "ex-13",
+      "action": "alert",
+      "confidence": 0.6,
+      "reason": "실패했거나 완료 근거가 없는 자료 전송 시도"
+    },
+    {
+      "alertId": "ex-14",
+      "action": "alert",
+      "confidence": 0.6,
+      "reason": "추가 확인이 필요한 자료 유출 의심 신호"
+    },
+    {
+      "alertId": "ex-15",
+      "action": "alert",
+      "confidence": 0.6,
+      "reason": "추가 확인이 필요한 자료 유출 의심 신호"
+    },
+    {
+      "alertId": "ex-16",
+      "action": "alert",
+      "confidence": 0.6,
+      "reason": "추가 확인이 필요한 자료 유출 의심 신호"
+    },
+    {
+      "alertId": "ex-17",
+      "action": "alert",
+      "confidence": 0.6,
+      "reason": "추가 확인이 필요한 자료 유출 의심 신호"
+    },
+    {
+      "alertId": "ex-18",
+      "action": "alert",
+      "confidence": 0.6,
+      "reason": "실패했거나 완료 근거가 없는 자료 전송 시도"
+    },
+    {
+      "alertId": "ex-19",
+      "action": "alert",
+      "confidence": 0.6,
+      "reason": "명령 통로의 소량 자료 관찰"
+    },
+    {
+      "alertId": "ex-20",
+      "action": "alert",
+      "confidence": 0.6,
+      "reason": "추가 확인이 필요한 자료 유출 의심 신호"
+    },
+    {
+      "alertId": "ex-21",
+      "action": "record",
+      "confidence": 0.1,
+      "reason": "명시적인 정상 조회·동기화 활동"
+    },
+    {
+      "alertId": "ex-22",
+      "action": "record",
+      "confidence": 0.1,
+      "reason": "명시적인 정상 조회·동기화 활동"
+    },
+    {
+      "alertId": "ex-23",
+      "action": "record",
+      "confidence": 0.1,
+      "reason": "명시적인 정상 조회·동기화 활동"
+    },
+    {
+      "alertId": "ex-24",
+      "action": "record",
+      "confidence": 0.1,
+      "reason": "명시적인 정상 조회·동기화 활동"
+    },
+    {
+      "alertId": "ex-25",
+      "action": "record",
+      "confidence": 0,
+      "reason": "명확한 자료 유출 근거 없음"
+    },
+    {
+      "alertId": "ex-26",
+      "action": "record",
+      "confidence": 0.1,
+      "reason": "명시적인 정상 조회·동기화 활동"
+    },
+    {
+      "alertId": "ex-27",
+      "action": "record",
+      "confidence": 0.1,
+      "reason": "명시적인 정상 조회·동기화 활동"
+    },
+    {
+      "alertId": "ex-28",
+      "action": "record",
+      "confidence": 0,
+      "reason": "명확한 자료 유출 근거 없음"
+    },
+    {
+      "alertId": "ex-29",
+      "action": "record",
+      "confidence": 0,
+      "reason": "명확한 자료 유출 근거 없음"
+    },
+    {
+      "alertId": "ex-30",
+      "action": "record",
+      "confidence": 0.1,
+      "reason": "명시적인 정상 조회·동기화 활동"
+    }
+  ],
+  "counts": {
+    "block": 10,
+    "alert": 10,
+    "record": 10
+  }
+}
